@@ -1,22 +1,28 @@
 # BootstrapAsymptotics
 
+## Setting 
+
+Gaussian input $X$, labels $y$ generated either with an additive Gaussian noise or with a logistic model.
+
 ## Algorithms
 
-- Bootstrap
-- Full resampling
-- ?
+- Pair bootstrap : sample the dataset $X, y$ with replacement (or in our model with a Poisson law of parameter 1)
+- Full resampling (of dataset $X, y$)
 
-_to complete_
+- Parametric residual bootstrap : fit the whole dataset $X, y$ by ERM, and generate new data $y$ using the ERM estimator 
+as a new teacher and by estimating the noise variance with the residuals of the fit (i.e square error).
+- Resampling of labels $y$
+
 
 ## State evolutions
 
 |         | Ridge | Logistic |
 | ------- | ----- | -------- |
-| 1 algo  |       |          |
-| 2 algos |       |          |
-| 3 algos |       |          |
-
-_to complete_
+| Pair bootstrap |       |          |
+| full resampling |       |          |
+| y resampling |       |          |
+| residual bootstrap |       |          |
+| Correlation Pair bootstrap - Full resampling |       |          |
 
 ## Notations
 

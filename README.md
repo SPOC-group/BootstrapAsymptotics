@@ -6,6 +6,8 @@
 - Full resampling
 - ?
 
+_to complete_
+
 ## State evolutions
 
 |         | Ridge | Logistic |
@@ -13,6 +15,8 @@
 | 1 algo  |       |          |
 | 2 algos |       |          |
 | 3 algos |       |          |
+
+_to complete_
 
 ## Notations
 

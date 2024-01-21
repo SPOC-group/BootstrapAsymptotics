@@ -22,6 +22,8 @@ function update_hatoverlaps(
 
     m_hat, Q_hat, V_hat = zero(m), zero(Q), zero(V)
 
+    # TODO : On veut des range differents pour p1 et p2 car pour comparer bootstrap avec le vrai resampling
+    # on aura p2 = [1] et p1 entre 0 et pmax
     for p1 in 0:pmax, p2 in 0:pmax
         P = Diagonal(SVector(p1, p2))
         G = inv(I + P * V) * P

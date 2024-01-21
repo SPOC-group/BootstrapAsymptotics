@@ -12,6 +12,7 @@ struct TargetResampling <: Algorithm end
 struct Overlaps{Vec1<:AbstractVector,Mat1<:AbstractMatrix,Mat2<:AbstractMatrix}
     m::Vec1
     Q::Mat1
+    # TODO : V can be a vector (maybe it simplifies things ?)
     V::Mat2
 end
 

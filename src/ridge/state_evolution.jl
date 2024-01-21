@@ -1,10 +1,10 @@
 ## Update overlaps
 
 function update_overlaps(hatoverlaps::HatOverlaps; λ::Real)
-    (; m̂, Q̂, V̂) = hatoverlaps
-    R = inv(λ * I + V̂)
-    m = R * m̂
-    Q = R * (m̂ * m̂' + Q̂) * R'
+    (; m_hat, Q_hat, V_hat) = hatoverlaps
+    R = inv(λ * I + V_hat)
+    m = R * m_hat
+    Q = R * (m_hat * m_hat' + Q_hat) * R'
     V = R
     return Overlaps(m, Q, V)
 end
@@ -17,22 +17,22 @@ function update_hatoverlaps(
     (; m, Q, V) = overlaps
 
     Q⁻¹ = inv(Q)
-    vstar = ρ - sum(m' * Q⁻¹ * m)
+    v_star = ρ - sum(m' * Q⁻¹ * m)
     B = vcat(m', m') * Q⁻¹ - I
 
-    m̂, Q̂, V̂ = zero(m), zero(Q), zero(V)
+    m_hat, Q_hat, V_hat = zero(m), zero(Q), zero(V)
 
     for p1 in 0:pmax, p2 in 0:pmax
         P = Diagonal(SVector(p1, p2))
         G = inv(I + P * V) * P
         proba = weight_dist(p1, p2)
 
-        m̂ += (α * proba) * (G * SVector(1, 1))
-        Q̂ += (α * proba) * (G * ((vstar + σ²) .+ B * Q * B') * G')
-        V̂ += (α * proba) * G
+        m_hat += (α * proba) * (G * SVector(1, 1))
+        Q_hat += (α * proba) * (G * ((v_star + σ²) .+ B * Q * B') * G')
+        V_hat += (α * proba) * G
     end
 
-    return HatOverlaps(α * m̂, α * Q̂, α * V̂)
+    return HatOverlaps(m_hat, Q_hat, V_hat)
 end
 
 ## State evolution
@@ -49,7 +49,7 @@ function state_evolution(
     max_iteration=100,
 )
     overlaps, hatoverlaps = Overlaps(), HatOverlaps()
-    
+
     for _ in 0:max_iteration
         new_hatoverlaps = update_hatoverlaps(overlaps; weight_dist, α, σ², ρ, pmax)
         new_overlaps = update_overlaps(new_hatoverlaps; λ)

@@ -4,6 +4,9 @@ using JuliaFormatter
 using Test
 
 @testset verbose = true "BootstrapAsymptotics" begin
+    @testset "Code quality" begin
+        Aqua.test_all(BootstrapAsymptotics)
+    end
     @testset "Ridge" begin
         include("ridge.jl")
     end

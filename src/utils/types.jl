@@ -16,9 +16,9 @@ struct Overlaps{Vec1<:AbstractVector,Mat1<:AbstractMatrix,Mat2<:AbstractMatrix}
 end
 
 struct HatOverlaps{Vec1<:AbstractVector,Mat1<:AbstractMatrix,Mat2<:AbstractMatrix}
-    m̂::Vec1
-    Q̂::Mat1
-    V̂::Mat2
+    m_hat::Vec1
+    Q_hat::Mat1
+    V_hat::Mat2
 end
 
 function Overlaps()
@@ -29,10 +29,10 @@ function Overlaps()
 end
 
 function HatOverlaps()
-    m̂ = SVector(0.0, 0.0)
-    Q̂ = SMatrix{2,2}(1.0, 0.01, 0.01, 1.0)
-    V̂ = Diagonal(SVector(1.0, 1.0))
-    return HatOverlaps(m̂, Q̂, V̂)
+    m_hat = SVector(0.0, 0.0)
+    Q_hat = SMatrix{2,2}(1.0, 0.01, 0.01, 1.0)
+    V_hat = Diagonal(SVector(1.0, 1.0))
+    return HatOverlaps(m_hat, Q_hat, V_hat)
 end
 
 function relative_difference(overlaps::Overlaps, overlaps_ref::Overlaps)

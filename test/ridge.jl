@@ -1,10 +1,22 @@
 using BootstrapAsymptotics
+using JET
 using LinearAlgebra
 using Test
 
 overlaps, hatoverlaps = state_evolution(
-    Ridge(); weight_dist=indep_poisson, α=1.0, λ=1e-4, σ²=1.0
+    Ridge(; α=1.0, λ=1e-4, Δ=1.0, ρ=1.0),
+    PairBootstrap(; p_max=8),
+    PairBootstrap(; p_max=8);
+    relative_tolerance=1e-4,
+    max_iteration=100,
 );
+
+@test_opt target_modules = (BootstrapAsymptotics,) state_evolution(
+    Ridge(; α=1.0, λ=1e-4, Δ=1.0, ρ=1.0),
+    PairBootstrap(; p_max=2),
+    PairBootstrap(; p_max=2);
+    max_iteration=2,
+)
 
 @test overlaps.m ≈ [0.631987, 0.631987] rtol = 1e-3
 @test overlaps.Q ≈ [2.34849 1.1545; 1.1545 2.34849] rtol = 1e-3

@@ -4,7 +4,7 @@ authors = ["SPOC and IdePHICS labs"]
 version = "0.1.0"
 
 [deps]
-ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
+HCubature = "19dc6840-f33b-545b-b366-655c7e3ffd49"
 IntervalArithmetic = "d1acc4aa-44c8-5952-acd4-ba5d80a2a253"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 NLSolvers = "337daf1e-9722-11e9-073e-8b9effe078ba"
@@ -15,8 +15,10 @@ StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 StatsFuns = "4c63d2b9-4356-54db-8cca-17b64c39e42c"
 
 [compat]
+HCubature = "1.5"
 IntervalArithmetic = "0.22"
 LinearAlgebra = "1"
+NLSolvers = "0.5"
 QuadGK = "2.9"
 Random = "1"
 SpecialFunctions = "2.3"

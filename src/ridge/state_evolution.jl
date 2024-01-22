@@ -1,22 +1,22 @@
 ## Update overlaps
 
 function update_overlaps(
-    problem::Ridge, algo1::Algorithm, algo2::Algorithm, hatoverlaps::HatOverlaps
-)
-    (; m_hat, Q_hat, V_hat) = hatoverlaps
+    problem::Ridge, algo1::Algorithm, algo2::Algorithm, hatoverlaps::O
+) where {O<:Overlaps{2}}
+    m_hat, Q_hat, V_hat = hatoverlaps.m, hatoverlaps.Q, hatoverlaps.V
     (; λ) = problem
     R = inv(λ * I + V_hat)
     m = R * m_hat
     Q = R * (m_hat * m_hat' + Q_hat) * R'
     V = R
-    return Overlaps(m, Q, V)
+    return O(m, Q, V)
 end
 
 ## Update hat overlaps
 
 function update_hatoverlaps(
-    problem::Ridge, algo1::Algorithm, algo2::Algorithm, overlaps::Overlaps;
-)
+    problem::Ridge, algo1::Algorithm, algo2::Algorithm, overlaps::O;
+) where {O<:Overlaps{2}}
     (; m, Q, V) = overlaps
     (; α, Δ, ρ) = problem
     if algo1 isa FullResampling && algo2 isa FullResampling
@@ -28,9 +28,8 @@ function update_hatoverlaps(
     B = vcat(m', m') * Q⁻¹ - I
 
     m_hat, Q_hat, V_hat = zero(m), zero(Q), zero(V)
-    p1_range, p2_range = weight_ranges(algo1, algo2)
 
-    for p1 in p1_range, p2 in p2_range
+    for p1 in weight_range(algo1), p2 in weight_range(algo2)
         proba = weight_dist(algo1, algo2, p1, p2)
         iszero(proba) && continue
 
@@ -46,28 +45,5 @@ function update_hatoverlaps(
         V_hat += (α * proba) * G
     end
 
-    return HatOverlaps(m_hat, Q_hat, V_hat)
-end
-
-## State evolution
-
-function state_evolution(
-    problem::Ridge,
-    algo1::Algorithm,
-    algo2::Algorithm;
-    relative_tolerance=1e-4,
-    max_iteration=100,
-)
-    overlaps, hatoverlaps = init_overlaps()
-    for _ in 0:max_iteration
-        new_hatoverlaps = update_hatoverlaps(problem, algo1, algo2, overlaps)
-        new_overlaps = update_overlaps(problem, algo1, algo2, new_hatoverlaps)
-        if relative_difference(new_overlaps, overlaps) < relative_tolerance
-            return new_overlaps, new_hatoverlaps
-        else
-            overlaps, hatoverlaps = new_overlaps, new_hatoverlaps
-        end
-    end
-    @warn "State evolution did not converge after $max_iteration iterations"
-    return (; overlaps, hatoverlaps)
+    return O(m_hat, Q_hat, V_hat)
 end

@@ -1,37 +1,33 @@
 abstract type Algorithm end
+abstract type BootstrapAlgorithm <: Algorithm end
+abstract type ResamplingAlgorithm <: Algorithm end
 
-@kwdef struct PairBootstrap <: Algorithm
+struct ERM <: Algorithm end
+
+@kwdef struct PairBootstrap <: BootstrapAlgorithm
     p_max::Int
 end
 
-@kwdef struct ResidualBootstrap <: Algorithm
+@kwdef struct ResidualBootstrap <: BootstrapAlgorithm
     p_max::Int
 end
 
-struct FullResampling <: Algorithm end
-struct LabelResampling <: Algorithm end
+struct FullResampling <: ResamplingAlgorithm end
+struct LabelResampling <: ResamplingAlgorithm end
 
 ## Weight ranges
 
 # TODO: control error
 
-function weight_ranges(algo1::PairBootstrap, algo2::PairBootstrap)
-    return 0:(algo1.p_max), 0:(algo2.p_max)
-end
-
-function weight_ranges(algo1::PairBootstrap, ::FullResampling)
-    return 0:(algo1.p_max), 1:1
-end
-
-function weight_ranges(::FullResampling, ::FullResampling)
-    return 0:1, 0:1
-end
-
-function weight_ranges(::LabelResampling, ::LabelResampling)
-    return 1:1, 1:1
+function weight_range(algo::BootstrapAlgorithm)
+    return 0:(algo.p_max)
 end
 
 ## Weight distributions
+
+function weight_dist(::PairBootstrap, p::Integer)
+    return poispdf(1, p)
+end
 
 function weight_dist(::PairBootstrap, ::PairBootstrap, p1::Integer, p2::Integer)
     return poispdf(1, p1) * poispdf(1, p2)

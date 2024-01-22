@@ -10,4 +10,7 @@ using Test
     @testset "Ridge" begin
         include("ridge.jl")
     end
+    @testset "Logistic" begin
+        include("logistic.jl")
+    end
 end

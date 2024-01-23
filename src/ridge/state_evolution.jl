@@ -38,7 +38,7 @@ function update_hatoverlaps(
 
         m_hat += (α * proba) * (G * SVector(1, 1))
         if algo1 isa LabelResampling && algo2 isa LabelResampling
-            Q_hat += (α * proba) * (G * (v_star .+ Δ * I .+ B * Q * B') * G')
+            Q_hat += (α * proba) * (G * (v_star .+ Δ * I(2) .+ B * Q * B') * G')
         else
             Q_hat += (α * proba) * (G * (v_star .+ Δ .+ B * Q * B') * G')
         end

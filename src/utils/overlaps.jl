@@ -43,5 +43,9 @@ function init_overlaps(::Val{2})
 end
 
 function close_enough(overlaps::Overlaps, overlaps_ref::Overlaps; rtol::Real)
-    return norm(overlaps.Q - overlaps_ref.Q) / norm(overlaps_ref.Q) < rtol
+    return (
+        norm(overlaps.m - overlaps_ref.m) / norm(overlaps_ref.m) < rtol &&
+        norm(overlaps.Q - overlaps_ref.Q) / norm(overlaps_ref.Q) < rtol &&
+        norm(overlaps.V - overlaps_ref.V) / norm(overlaps_ref.V) < rtol
+    )
 end

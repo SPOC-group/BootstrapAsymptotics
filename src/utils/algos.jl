@@ -19,6 +19,14 @@ struct LabelResampling <: ResamplingAlgorithm end
 
 # TODO: control error
 
+function weight_range(::ERM)
+    return 1:1
+end
+
+function weight_range(::ResamplingAlgorithm)
+    return 0:1
+end
+
 function weight_range(algo::BootstrapAlgorithm)
     return 0:(algo.p_max)
 end
@@ -27,6 +35,10 @@ end
 
 function weight_dist(::PairBootstrap, p::Integer)
     return poispdf(1, p)
+end
+
+function weight_dist(::ERM, p::Integer)
+    return 1
 end
 
 function weight_dist(::PairBootstrap, ::PairBootstrap, p1::Integer, p2::Integer)

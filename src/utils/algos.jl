@@ -1,58 +1,44 @@
 abstract type Algorithm end
 abstract type BootstrapAlgorithm <: Algorithm end
-abstract type ResamplingAlgorithm <: Algorithm end
 
 struct ERM <: Algorithm end
+struct FullResampling <: Algorithm end
+struct LabelResampling <: Algorithm end
 
-@kwdef struct PairBootstrap <: BootstrapAlgorithm
+@kwdef struct PairBootstrap <: Algorithm
     p_max::Int
 end
 
-@kwdef struct ResidualBootstrap <: BootstrapAlgorithm
+@kwdef struct ResidualBootstrap <: Algorithm
     p_max::Int
 end
 
-struct FullResampling <: ResamplingAlgorithm end
-struct LabelResampling <: ResamplingAlgorithm end
+@kwdef struct SubsamplingBootstrap <: Algorithm
+    r::Float64
+end
 
 ## Weight ranges
 
 # TODO: control error
 
-function weight_range(::ERM)
-    return 1:1
-end
-
-function weight_range(::ResamplingAlgorithm)
-    return 0:1
-end
-
-function weight_range(algo::BootstrapAlgorithm)
-    return 0:(algo.p_max)
-end
+weight_range(::Algorithm) = 0:1
+weight_range(algo::PairBootstrap) = 0:(algo.p_max)
+weight_range(algo::ResidualBootstrap) = 0:(algo.p_max)
 
 ## Weight distributions
 
-function weight_dist(::PairBootstrap, p::Integer)
-    return poispdf(1, p)
-end
+# Single
 
-function weight_dist(::ERM, p::Integer)
-    return 1
-end
+weight_dist(::Algorithm, p::Integer) = isone(p)
+weight_dist(::PairBootstrap, p::Integer) = poispdf(1, p)
+weight_dist(algo::SubsamplingBootstrap, p::Integer) = isone(p) ? algo.r : 1 - algo.r
 
-function weight_dist(::PairBootstrap, ::PairBootstrap, p1::Integer, p2::Integer)
-    return poispdf(1, p1) * poispdf(1, p2)
-end
+# Double
 
-function weight_dist(::PairBootstrap, ::FullResampling, p1::Integer, p2::Integer)
-    return poispdf(1, p1) * isone(p2)
+function weight_dist(algo1::Algorithm, algo2::Algorithm, p1::Integer, p2::Integer)
+    return weight_dist(algo1, p1) * weight_dist(algo2, p2)
 end
 
 function weight_dist(::FullResampling, ::FullResampling, p1::Integer, p2::Integer)
     return ((isone(p1) && iszero(p2)) + (iszero(p1) && isone(p2))) / 2
-end
-
-function weight_dist(::LabelResampling, ::LabelResampling, p1::Integer, p2::Integer)
-    return isone(p1) && isone(p2)
 end

@@ -3,7 +3,7 @@ using JET
 using LinearAlgebra
 using Test
 
-overlaps, hatoverlaps = state_evolution(
+overlaps, hatoverlaps, stats = state_evolution(
     Ridge(; α=1.0, λ=1e-4, Δ=1.0, ρ=1.0),
     PairBootstrap(; p_max=8),
     PairBootstrap(; p_max=8);
@@ -24,7 +24,7 @@ allocs = @allocated state_evolution(
     PairBootstrap(; p_max=2);
     max_iteration=2,
 )
-@test_broken allocs == 0
+@test allocs == 0
 
 @test overlaps.m ≈ [0.631987, 0.631987] rtol = 1e-3
 @test overlaps.Q ≈ [2.34849 1.1545; 1.1545 2.34849] rtol = 1e-3

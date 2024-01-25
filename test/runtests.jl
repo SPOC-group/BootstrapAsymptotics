@@ -1,6 +1,7 @@
 using Aqua
 using BootstrapAsymptotics
 using JuliaFormatter
+using Pkg
 using Test
 
 @testset verbose = true "BootstrapAsymptotics" begin

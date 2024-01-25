@@ -11,6 +11,8 @@ using StaticArrays: SVector, SMatrix
 
 include("utils/problems.jl")
 include("utils/algos.jl")
+include("utils/losses.jl")
+include("utils/sample.jl")
 include("utils/overlaps.jl")
 include("utils/state_evolution.jl")
 

@@ -12,6 +12,10 @@ end
     p_max::Int
 end
 
+@kwdef struct Subsampling <: BootstrapAlgorithm
+    proba::Real
+end
+
 struct FullResampling <: ResamplingAlgorithm end
 struct LabelResampling <: ResamplingAlgorithm end
 
@@ -19,8 +23,20 @@ struct LabelResampling <: ResamplingAlgorithm end
 
 # TODO: control error
 
-function weight_range(algo::BootstrapAlgorithm)
+function weight_range(algo::PairBootstrap)
     return 0:(algo.p_max)
+end
+
+function weight_range(algo::Subsampling)
+    return 0:1
+end
+
+function weight_range(algo::FullResampling)
+    return 0:1
+end
+
+function weight_range(algo::LabelResampling)
+    return 1:1
 end
 
 ## Weight distributions
@@ -43,4 +59,12 @@ end
 
 function weight_dist(::LabelResampling, ::LabelResampling, p1::Integer, p2::Integer)
     return isone(p1) && isone(p2)
+end
+
+function weight_dist(algo1::Subsampling, algo2::Subsampling, p1::Integer, p2::Integer)
+    return (algo1.proba * isone(p1) + (1.0 - algo1.proba) * iszero(p1)) * (algo2.proba * isone(p2) + (1.0 - algo2.proba) * iszero(p2))
+end
+
+function weight_dist(algo1::Subsampling, ::FullResampling, p1::Integer, p2::Integer)
+    return (algo1.proba * isone(p1) + (1.0 - algo1.proba) * iszero(p1)) * isone(p2)
 end

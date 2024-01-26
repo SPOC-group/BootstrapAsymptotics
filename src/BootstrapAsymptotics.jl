@@ -23,7 +23,7 @@ include("logistic/state_evolution.jl")
 
 export Overlaps
 export Ridge, Logistic
-export ERM, PairBootstrap, ResidualBootstrap, LabelResampling, FullResampling
+export ERM, PairBootstrap, ResidualBootstrap, LabelResampling, FullResampling, Subsampling
 export state_evolution
 
 end

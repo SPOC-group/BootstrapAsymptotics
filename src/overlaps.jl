@@ -17,6 +17,11 @@ struct Overlaps{N,T1,T2,T3}
     end
 end
 
+function Base.show(io::IO, overlaps::Overlaps)
+    (; m, Q, V) = overlaps
+    return print(io, "Overlaps($m, $Q, $V)")
+end
+
 function Overlaps(m::T1, Q::T2, V::T3) where {T1<:Real,T2<:Real,T3<:Real}
     return Overlaps{1,T1,T2,T3}(m, Q, V)
 end
@@ -29,14 +34,14 @@ function Overlaps(
 end
 
 function Overlaps(::Val{1})
-    m = 0.1
+    m = 0.0
     Q = 1.0
     V = 1.0
     return Overlaps(m, Q, V)
 end
 
 function Overlaps(::Val{2})
-    m = SVector(0.1, 0.1)
+    m = SVector(0.0, 0.0)
     Q = SMatrix{2,2}(1.0, 0.01, 0.01, 1.0)
     V = Diagonal(SVector(1.0, 1.0))
     return Overlaps(m, Q, V)
@@ -50,8 +55,8 @@ end
 
 function close_enough(overlaps::Overlaps, overlaps_ref::Overlaps; rtol::Real)
     return (
-        norm(overlaps.m - overlaps_ref.m) / norm(overlaps_ref.m) < rtol &&
-        norm(overlaps.Q - overlaps_ref.Q) / norm(overlaps_ref.Q) < rtol &&
-        norm(overlaps.V - overlaps_ref.V) / norm(overlaps_ref.V) < rtol
+        norm(overlaps.m - overlaps_ref.m, Inf) / norm(overlaps_ref.m, Inf) < rtol &&
+        norm(overlaps.Q - overlaps_ref.Q, Inf) / norm(overlaps_ref.Q, Inf) < rtol &&
+        norm(overlaps.V - overlaps_ref.V, Inf) / norm(overlaps_ref.V, Inf) < rtol
     )
 end

@@ -4,12 +4,9 @@ abstract type BootstrapAlgorithm <: Algorithm end
 struct ERM <: Algorithm end
 struct FullResampling <: Algorithm end
 struct LabelResampling <: Algorithm end
+struct ResidualBootstrap <: Algorithm end
 
 @kwdef struct PairBootstrap <: Algorithm
-    p_max::Int = 8
-end
-
-@kwdef struct ResidualBootstrap <: Algorithm
     p_max::Int = 8
 end
 

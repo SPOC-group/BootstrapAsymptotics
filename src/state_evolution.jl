@@ -1,10 +1,18 @@
 function state_evolution(
-    problem::Problem, algos::Vararg{Algorithm,N}; rtol=1e-3, max_iteration=100
+    problem::Problem,
+    algos::Vararg{Algorithm,N};
+    rtol=1e-4,
+    max_iteration=100,
+    show_progress::Bool=true,
 ) where {N}
-    (; overlaps, hatoverlaps) = init_all_overlaps(problem, algos...; rtol, max_iteration)
+    (; overlaps, hatoverlaps) = init_all_overlaps(
+        problem, algos...; rtol, max_iteration, show_progress
+    )
 
     converged, nb_iterations = false, max_iteration
+    p = Progress(max_iteration; desc="$N-d state evolution", enabled=show_progress)
     for iter in 1:max_iteration
+        next!(p)
         new_hatoverlaps = update_hatoverlaps(problem, algos..., overlaps, hatoverlaps; rtol)
         new_overlaps = update_overlaps(problem, algos..., overlaps, new_hatoverlaps; rtol)
         if close_enough(new_overlaps, overlaps; rtol) &&

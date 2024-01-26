@@ -17,8 +17,6 @@ function gₒᵤₜ_and_∂ωgₒᵤₜ(y::Integer, ω::Real, V::Real, p::Real; 
     init = ω
     solver = NLSolvers.LineSearch(NLSolvers.Newton())
     options = NLSolvers.OptimizationOptions(; x_reltol=rtol, x_abstol=0.1, maxiter=10)
-
-    # TODO : No control on the precision of the solution
     res = NLSolvers.solve(optprob, init, solver, options)
 
     prox = res.info.solution
@@ -28,6 +26,20 @@ function gₒᵤₜ_and_∂ωgₒᵤₜ(y::Integer, ω::Real, V::Real, p::Real; 
     ∂ωgₒᵤₜ = (∂ωprox - 1) / V
 
     return gₒᵤₜ, ∂ωgₒᵤₜ
+end
+
+function Z₀_and_∂μZ₀(y::Integer, μ::Real, v::Real; rtol::Real)
+    function Z₀_and_∂μZ₀_integrand(u::Real)
+        z = u * sqrt(v) + μ
+        σ = logistic(y * z)
+        res = SVector(σ, y * σ * (1 - σ)) * normpdf(u)
+        return res
+    end
+    bound = 10.0
+    double_integral, err = quadgk(Z₀_and_∂μZ₀_integrand, -bound, bound; rtol)
+    Z₀ = double_integral[1]
+    ∂μZ₀ = double_integral[2]
+    return Z₀, ∂μZ₀
 end
 
 ## Update overlaps
@@ -48,7 +60,6 @@ end
 function update_hatoverlaps(
     problem::Logistic, algo::Algorithm, overlaps::O, hatoverlaps::O; rtol::Real
 ) where {O<:Overlaps{1}}
-    @info "Update 1d"
     (; m, Q, V) = overlaps
     (; α, ρ) = problem
 
@@ -63,28 +74,25 @@ function update_hatoverlaps(
         iszero(proba) && continue
 
         for y in (-1, 1)
-            function triple_integrand(u::AbstractVector)
-                ω = Q_sqrt * u[1]
+            function triple_integrand(u::Real)
+                ω = Q_sqrt * u
                 μ = m * Q⁻¹ * ω
-                z = v_star * u[2] + μ
-                ∂ωμ = m * Q⁻¹
 
-                Z₀ = logistic(y * z)
-                ∂ωZ₀ = y * ∂ωμ * logistic_der(y * z)
+                Z₀, ∂μZ₀ = Z₀_and_∂μZ₀(y, μ, v_star; rtol)
                 gₒᵤₜ, ∂ωgₒᵤₜ = gₒᵤₜ_and_∂ωgₒᵤₜ(y, ω, V, p; rtol)
 
-                Im = ∂ωZ₀ * gₒᵤₜ
+                Im = ∂μZ₀ * gₒᵤₜ
                 IQ = Z₀ * gₒᵤₜ^2
                 IV = Z₀ * ∂ωgₒᵤₜ
-                return SVector(Im, IQ, IV) * prod(normpdf, u)
+                res = SVector(Im, IQ, IV) * normpdf(u)
+                return res
             end
 
-            bound = SVector(7.0, 7.0)
-            triple_integral, err = hcubature(triple_integrand, -bound, bound; rtol, maxevals=100)
-            @show triple_integral err
+            bound = 10.0
+            triple_integral, err = quadgk(triple_integrand, -bound, bound; rtol)
             m_hat += α * proba * triple_integral[1]
             Q_hat += α * proba * triple_integral[2]
-            V_hat += α * proba * triple_integral[3]
+            V_hat -= α * proba * triple_integral[3]
         end
     end
 

@@ -9,9 +9,14 @@ using Test
         Aqua.test_all(BootstrapAsymptotics; ambiguities=false)
     end
     @testset "Ridge" begin
-        include("ridge.jl")
+        include("../comparison/ridge.jl")
     end
     @testset "Logistic" begin
-        include("logistic.jl")
+        include("../comparison/logistic.jl")
+    end
+    @testset "Code performance" begin
+        include("types_allocations.jl")
     end
 end
+
+Pkg.activate(dirname(@__DIR__))

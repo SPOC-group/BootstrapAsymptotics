@@ -28,18 +28,24 @@ function Overlaps(
     return Overlaps{N,T1,T2,T3}(m, Q, V)
 end
 
-function init_overlaps(::Val{1})
-    m = 0.0
+function Overlaps(::Val{1})
+    m = 0.1
     Q = 1.0
     V = 1.0
     return Overlaps(m, Q, V)
 end
 
-function init_overlaps(::Val{2})
-    m = SVector(0.0, 0.0)
+function Overlaps(::Val{2})
+    m = SVector(0.1, 0.1)
     Q = SMatrix{2,2}(1.0, 0.01, 0.01, 1.0)
     V = Diagonal(SVector(1.0, 1.0))
     return Overlaps(m, Q, V)
+end
+
+function init_all_overlaps(::Problem, ::Vararg{Algorithm,N}; kwargs...) where {N}
+    overlaps = Overlaps(Val{N}())
+    hatoverlaps = Overlaps(Val{N}())
+    return (; overlaps, hatoverlaps)
 end
 
 function close_enough(overlaps::Overlaps, overlaps_ref::Overlaps; rtol::Real)

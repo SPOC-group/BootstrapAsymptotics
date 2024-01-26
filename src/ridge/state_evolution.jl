@@ -1,7 +1,12 @@
 ## Update overlaps
 
 function update_overlaps(
-    problem::Ridge, algo1::Algorithm, algo2::Algorithm, hatoverlaps::O
+    problem::Ridge,
+    algo1::Algorithm,
+    algo2::Algorithm,
+    overlaps::O,
+    hatoverlaps::O;
+    rtol::Real,
 ) where {O<:Overlaps{2}}
     m_hat, Q_hat, V_hat = hatoverlaps.m, hatoverlaps.Q, hatoverlaps.V
     (; λ) = problem
@@ -15,13 +20,15 @@ end
 ## Update hat overlaps
 
 function update_hatoverlaps(
-    problem::Ridge, algo1::Algorithm, algo2::Algorithm, overlaps::O;
+    problem::Ridge,
+    algo1::Algorithm,
+    algo2::Algorithm,
+    overlaps::O,
+    hatoverlaps::O;
+    rtol::Real,
 ) where {O<:Overlaps{2}}
     (; m, Q, V) = overlaps
     (; α, Δ, ρ) = problem
-    if algo1 isa FullResampling && algo2 isa FullResampling
-        α *= 2
-    end
 
     Q⁻¹ = inv(Q)
     v_star = ρ - sum(m' * Q⁻¹ * m)

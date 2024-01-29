@@ -1,79 +1,3 @@
-function update_overlaps(
-    problem::Logistic,
-    algo1::Algorithm,
-    algo2::Algorithm,
-    overlaps::O,
-    hatoverlaps::O;
-    rtol::Real,
-) where {O<:Overlaps{2}}
-    m_hat, Q_hat, V_hat = hatoverlaps.m, hatoverlaps.Q, hatoverlaps.V
-    (; λ) = problem
-    R = inv(λ * I + V_hat)
-    Q_offdiag = (R * (m_hat * m_hat' + Q_hat) * R')[1, 2]
-    Q = Diagonal(overlaps.Q) + SMatrix{2,2}(0, Q_offdiag, Q_offdiag, 0)
-    return O(overlaps.m, Q, overlaps.V)
-end
-
-## Update hat overlaps
-
-coherent_labels(::Algorithm, ::Algorithm, y1::Integer, y2::Integer) = y1 == y2
-coherent_labels(::LabelResampling, ::LabelResampling, y1::Integer, y2::Integer) = true
-
-function update_hatoverlaps(
-    problem::Logistic,
-    algo1::Algorithm,
-    algo2::Algorithm,
-    overlaps::O,
-    hatoverlaps::O;
-    rtol::Real,
-) where {O<:Overlaps{2}}
-    (; m, Q, V) = overlaps
-    (; α, ρ) = problem
-
-    Q⁻¹ = inv(Q)
-    Q_sqrt = sqrt(Q)
-    v_star = ρ - dot(m, Q⁻¹ * m)
-
-    Q_hat_offdiag = zero(eltype(hatoverlaps.Q))
-
-    for p1 in weight_range(algo1), p2 in weight_range(algo2)
-        p = SVector(p1, p2)
-        proba = weight_dist(algo1, algo2, p1, p2)
-        iszero(proba) && continue
-
-        for y1 in (-1, 1), y2 in (-1, 1)
-            coherent_labels(algo1, algo2, y1, y2) || continue
-            y = SVector(y1, y2)
-
-            function integrand(u::AbstractVector)
-                ω = Q_sqrt * u
-                μ = dot(m, Q⁻¹ * ω)
-
-                if algo1 isa LabelResampling && algo2 isa LabelResampling
-                    Z₀1 = first(Z₀_and_∂μZ₀(y[1], μ, v_star; rtol))
-                    Z₀2 = first(Z₀_and_∂μZ₀(y[2], μ, v_star; rtol))
-                    Z₀ = Z₀1 * Z₀2
-                else
-                    Z₀ = first(Z₀_and_∂μZ₀(y[1], μ, v_star; rtol))
-                end
-                gₒᵤₜ1 = first(gₒᵤₜ_and_∂ωgₒᵤₜ(y[1], ω[1], V[1, 1], p[1]; rtol))
-                gₒᵤₜ2 = first(gₒᵤₜ_and_∂ωgₒᵤₜ(y[2], ω[2], V[2, 2], p[2]; rtol))
-                return Z₀ * gₒᵤₜ1 * gₒᵤₜ2 * prod(normpdf, u)
-            end
-
-            bound = SVector(10.0, 10.0)
-            integral, err = hcubature(integrand, -bound, +bound; rtol)
-            Q_hat_offdiag += α * proba * integral
-        end
-    end
-
-    Q_hat = Diagonal(hatoverlaps.Q) + SMatrix{2,2}(0, Q_hat_offdiag, Q_hat_offdiag, 0)
-
-    return O(hatoverlaps.m, Q_hat, hatoverlaps.V)
-end
-
-## State evolution
-
 function init_all_overlaps(
     problem::Logistic,
     algo1::Algorithm,
@@ -111,4 +35,53 @@ function init_all_overlaps(
 
     @assert problem.ρ >= dot(overlaps.m, inv(overlaps.Q) * overlaps.m)
     return (; overlaps, hatoverlaps)
+end
+
+function update_hatoverlaps(
+    problem::Logistic,
+    algo1::Algorithm,
+    algo2::Algorithm,
+    overlaps::O,
+    hatoverlaps::O;
+    rtol::Real,
+) where {O<:Overlaps{2}}
+    (; m, Q, V) = overlaps
+    (; α, ρ) = problem
+
+    Q⁻¹ = inv(Q)
+    Q_sqrt = sqrt(Q)
+    v_star = ρ - dot(m, Q⁻¹ * m)
+
+    m_hat, Q_hat, V_hat = zero(m), zero(Q), zero(V)
+
+    for (p1, p2) in weight_range(algo1, algo2)
+        p = SVector(p1, p2)
+        proba = weight_dist(algo1, algo2, p1, p2) * size_mul(algo1, algo2)
+        iszero(proba) && continue
+
+        for y in discrete_labels(algo1, algo2)
+            function integrand(u::AbstractVector)
+                ω = Q_sqrt * u
+                μ = dot(m, Q⁻¹ * ω)
+
+                Z₀, ∂μZ₀ = Z₀_and_∂μZ₀(y, μ, v_star; rtol)
+                gₒᵤₜ, ∂ωgₒᵤₜ = gₒᵤₜ_and_∂ωgₒᵤₜ(y, ω, V, p; rtol)
+
+                Im = ∂μZ₀ * gₒᵤₜ
+                IQ = Z₀ * gₒᵤₜ * gₒᵤₜ'
+                IV = Z₀ * ∂ωgₒᵤₜ
+
+                return vcat(Im, vec(IQ), vec(IV)) * prod(normpdf, u)
+            end
+
+            bound = SVector(10.0, 10.0)
+            integral, err = hcubature(integrand, -bound, +bound; rtol)
+
+            m_hat += α * proba * SVector(integral[1:2]...)
+            Q_hat += α * proba * SMatrix{2,2}(integral[3:6]...)
+            V_hat -= α * proba * Diagonal(SVector(integral[7], integral[10]))
+        end
+    end
+
+    return O(hatoverlaps.m, Q_hat, hatoverlaps.V)
 end

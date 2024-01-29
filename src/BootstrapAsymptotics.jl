@@ -1,5 +1,6 @@
 module BootstrapAsymptotics
 
+using Base.Iterators: product
 using HCubature: hcubature
 using IntervalArithmetic: interval
 using LinearAlgebra: Diagonal, Symmetric, I, dot, norm
@@ -22,7 +23,7 @@ include("sample.jl")
 include("overlaps.jl")
 include("state_evolution.jl")
 include("ridge_state_evolution.jl")
-include("logistic_state_evolution_single.jl")
+include("logistic_state_evolution_utils.jl")
 include("logistic_state_evolution.jl")
 
 export Overlaps

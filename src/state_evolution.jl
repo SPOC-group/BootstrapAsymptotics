@@ -1,3 +1,20 @@
+function update_overlaps(
+    problem::Problem,
+    algo1::Algorithm,
+    algo2::Algorithm,
+    overlaps::O,
+    hatoverlaps::O;
+    rtol::Real,
+) where {O<:Overlaps{2}}
+    m_hat, Q_hat, V_hat = hatoverlaps.m, hatoverlaps.Q, hatoverlaps.V
+    (; λ) = problem
+    R = inv(λ * I + V_hat)
+    m = R * m_hat
+    Q = (R * (m_hat * m_hat' + Q_hat) * R')
+    V = R
+    return O(m, Q, V)
+end
+
 function state_evolution(
     problem::Problem,
     algos::Vararg{Algorithm,N};

@@ -28,6 +28,31 @@ function gₒᵤₜ_and_∂ωgₒᵤₜ(y::Integer, ω::Real, V::Real, p::Real; 
     return gₒᵤₜ, ∂ωgₒᵤₜ
 end
 
+function gₒᵤₜ_and_∂ωgₒᵤₜ(
+    y::AbstractVector{<:Integer},
+    ω::AbstractVector{<:Real},
+    V::Diagonal{<:Real},
+    p::AbstractVector{<:Real};
+    rtol::Real,
+)
+    @assert length(y) == length(ω) == size(V, 1) == length(p) == 2
+    gₒᵤₜ1, ∂ωgₒᵤₜ1 = gₒᵤₜ_and_∂ωgₒᵤₜ(y[1], ω[1], V[1, 1], p[1]; rtol)
+    gₒᵤₜ2, ∂ωgₒᵤₜ2 = gₒᵤₜ_and_∂ωgₒᵤₜ(y[2], ω[2], V[2, 2], p[2]; rtol)
+    gₒᵤₜ = SVector(gₒᵤₜ1, gₒᵤₜ2)
+    ∂ωgₒᵤₜ = Diagonal(SVector(∂ωgₒᵤₜ1, ∂ωgₒᵤₜ2))
+    return gₒᵤₜ, ∂ωgₒᵤₜ
+end
+
+function gₒᵤₜ_and_∂ωgₒᵤₜ(
+    y::Integer,
+    ω::AbstractVector{<:Real},
+    V::Diagonal{<:Real},
+    p::AbstractVector{<:Real};
+    rtol::Real,
+)
+    return gₒᵤₜ_and_∂ωgₒᵤₜ(SVector(y, y), ω, V, p; rtol)
+end
+
 function Z₀_and_∂μZ₀(y::Integer, μ::Real, v::Real; rtol::Real)
     function Z₀_and_∂μZ₀_integrand(u::Real)
         z = u * sqrt(v) + μ
@@ -42,6 +67,13 @@ function Z₀_and_∂μZ₀(y::Integer, μ::Real, v::Real; rtol::Real)
     return Z₀, ∂μZ₀
 end
 
+function Z₀_and_∂μZ₀(y::AbstractVector{<:Integer}, μ::Real, v::Real; rtol::Real)
+    Z₀1, ∂μZ₀1 = Z₀_and_∂μZ₀(y[1], μ, v; rtol)
+    Z₀2, ∂μZ₀2 = Z₀_and_∂μZ₀(y[2], μ, v; rtol)
+    Z₀, ∂μZ₀ = Z₀1 * Z₀2, ∂μZ₀1 * ∂μZ₀2
+    return Z₀, ∂μZ₀
+end
+
 ## Update overlaps
 
 function update_overlaps(
@@ -52,6 +84,7 @@ function update_overlaps(
     m = ρ * m_hat / (λ + V_hat)
     Q = (ρ * m_hat^2 + Q_hat) / (λ + V_hat)^2
     V = inv(λ + V_hat)
+    @assert ρ - dot(m, inv(Q) * m) >= 0
     return O(m, Q, V)
 end
 
@@ -66,6 +99,7 @@ function update_hatoverlaps(
     Q⁻¹ = inv(Q)
     Q_sqrt = sqrt(Q)
     v_star = ρ - dot(m, Q⁻¹ * m)
+    @assert v_star >= 0
 
     m_hat, Q_hat, V_hat = zero(m), zero(Q), zero(V)
 

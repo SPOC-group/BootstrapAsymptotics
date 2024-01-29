@@ -9,7 +9,8 @@ function update_overlaps(
     m_hat, Q_hat, V_hat = hatoverlaps.m, hatoverlaps.Q, hatoverlaps.V
     (; λ) = problem
     R = inv(λ * I + V_hat)
-    Q = R * (m_hat * m_hat' + Q_hat) * R'
+    Q_offdiag = (R * (m_hat * m_hat' + Q_hat) * R')[1, 2]
+    Q = Diagonal(overlaps.Q) + SMatrix{2,2}(0, Q_offdiag, Q_offdiag, 0)
     return O(overlaps.m, Q, overlaps.V)
 end
 
@@ -33,7 +34,7 @@ function update_hatoverlaps(
     Q_sqrt = sqrt(Q)
     v_star = ρ - dot(m, Q⁻¹ * m)
 
-    Q_hat = zero(Q) + Diagonal(hatoverlaps.Q)
+    Q_hat_offdiag = zero(eltype(hatoverlaps.Q))
 
     for p1 in weight_range(algo1), p2 in weight_range(algo2)
         p = SVector(p1, p2)
@@ -61,10 +62,12 @@ function update_hatoverlaps(
             end
 
             bound = SVector(10.0, 10.0)
-            Q_hat_offdiag, err = hcubature(integrand, -bound, +bound; rtol)
-            Q_hat += α * proba * SMatrix{2,2}(0, Q_hat_offdiag, Q_hat_offdiag, 0)
+            integral, err = hcubature(integrand, -bound, +bound; rtol)
+            Q_hat_offdiag += α * proba * integral
         end
     end
+
+    Q_hat = Diagonal(hatoverlaps.Q) + SMatrix{2,2}(0, Q_hat_offdiag, Q_hat_offdiag, 0)
 
     return O(hatoverlaps.m, Q_hat, hatoverlaps.V)
 end
@@ -105,5 +108,7 @@ function init_all_overlaps(
 
     overlaps = Overlaps(m, Q, V)
     hatoverlaps = Overlaps(m_hat, Q_hat, V_hat)
+
+    @assert problem.ρ >= dot(overlaps.m, inv(overlaps.Q) * overlaps.m)
     return (; overlaps, hatoverlaps)
 end

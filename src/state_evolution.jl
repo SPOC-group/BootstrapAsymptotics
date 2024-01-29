@@ -14,8 +14,10 @@ function state_evolution(
     for iter in 1:max_iteration
         next!(p)
         # maybe update the overlaps first from the hat overlaps so by construction we have a "good" matrix
-        new_overlaps    = update_overlaps(problem, algos..., overlaps, hatoverlaps; rtol)
-        new_hatoverlaps = update_hatoverlaps(problem, algos..., new_overlaps, hatoverlaps; rtol)
+        new_overlaps = update_overlaps(problem, algos..., overlaps, hatoverlaps; rtol)
+        new_hatoverlaps = update_hatoverlaps(
+            problem, algos..., new_overlaps, hatoverlaps; rtol
+        )
         if close_enough(new_overlaps, overlaps; rtol) &&
             close_enough(new_hatoverlaps, hatoverlaps; rtol)
             converged, nb_iterations = true, iter

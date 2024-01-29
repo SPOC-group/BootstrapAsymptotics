@@ -16,7 +16,7 @@ function gₒᵤₜ_and_∂ωgₒᵤₜ(y::Integer, ω::Real, V::Real, p::Real; 
     optprob = NLSolvers.OptimizationProblem(scalarobj; inplace=false)
     init = ω
     solver = NLSolvers.LineSearch(NLSolvers.Newton())
-    options = NLSolvers.OptimizationOptions(; x_reltol=rtol, x_abstol=0.1, maxiter=10)
+    options = NLSolvers.OptimizationOptions(; x_reltol=rtol, x_abstol=0.0)
     res = NLSolvers.solve(optprob, init, solver, options)
 
     prox = res.info.solution

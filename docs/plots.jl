@@ -20,7 +20,7 @@ K = 20
 λ = 0.1
 setting = :logistic
 
-α_vals = 10 .^ (-1:0.2:1)
+α_vals = 10 .^ (-1:0.2:1.5)
 algo_vals = [
     PairBootstrap(; p_max=5), #
     SubsamplingBootstrap(0.8), #
@@ -35,7 +35,6 @@ vars_emp = Dict(algo => fill(NaN, length(α_vals)) for algo in algo_vals)
 vars_se = Dict(algo => fill(NaN, length(α_vals)) for algo in algo_vals)
 
 for algo in algo_vals
-    algo isa LabelResampling || continue
     @threads for i in eachindex(α_vals)
         α = α_vals[i]
         @info "$algo - α=$α"

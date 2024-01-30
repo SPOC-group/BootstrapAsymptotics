@@ -1,48 +1,76 @@
-function fit(::Logistic, ::ERM, X, y)
+function StatsAPI.fit(::Logistic, ::ERM, X::AbstractMatrix, y::AbstractVector)
+    return error("not implemented")
+end
+
+function StatsAPI.fit(problem::Ridge, ::ERM, X::AbstractMatrix, y::AbstractVector)
+    w = (X' * X + problem.λ * I) \ (X' * y)
     return w
 end
 
-function fit(::Ridge, ::ERM, X, y)
-    w = (X' * X + λ * I) \ (X' * y)
-    return w
-end
-
-function fit(problem::Problem, algo::ERM, X, y, w_star)
+function StatsAPI.fit(
+    ::AbstractRNG, problem::Problem, algo::Algorithm, X::AbstractMatrix, y::AbstractVector
+)
     return fit(problem, algo, X, y)
 end
 
-function fit(rng::AbstractRNG, problem::Problem, ::PairBootstrap, X, y, w_star)
-    ind = sample(rng, length(y), length(y); replace=true)
-    return fit(problem, ERM(), X[ind, :], y[ind])
+function StatsAPI.fit(
+    rng,
+    ::AbstractRNG,
+    problem::Problem,
+    algo::ERM,
+    X::AbstractMatrix,
+    y::AbstractVector,
+    w_star::AbstractVector,
+)
+    return fit(rng, problem, algo, X, y)
 end
 
-function fit(rng::AbstractRNG, problem::Problem, algo::SubsamplingBootstrap, X, y, w_star)
-    ind = rand(rng, length(y)) .< algo.r
-    return fit(problem, ERM(), X[ind, :], y[ind])
+function StatsAPI.fit(
+    rng::AbstractRNG,
+    problem::Problem,
+    ::PairBootstrap,
+    X::AbstractMatrix,
+    y::AbstractVector,
+)
+    n = length(y)
+    ind = sample(rng, 1:n, n; replace=true)
+    return @views fit(problem, ERM(), X[ind, :], y[ind])
 end
 
-function fit(rng::AbstractRNG, problem::Ridge, ::ResidualBootstrap, X, y, w_star)
-    w_est = fit(problem, ERM(), X, y)
-    y_pred = X * w_est
-    Δ_est = mean(abs2, y - y_pred)
-    new_y = sample_labels(rng, problem, X, w_est; Δ=Δ_est)
-    return fit(problem, ERM(), X, new_y)
+function StatsAPI.fit(
+    rng::AbstractRNG,
+    problem::Problem,
+    algo::SubsamplingBootstrap,
+    X::AbstractMatrix,
+    y::AbstractVector,
+)
+    n = length(y)
+    ind = rand(rng, n) .< algo.r
+    return @views fit(problem, ERM(), X[ind, :], y[ind])
 end
 
-function fit(rng::AbstractRNG, problem::Logistic, ::ResidualBootstrap, X, y, w_star)
-    w_est = fit(ERM(), X, y)
-    new_y = sample_labels(rng, problem, X, w_est)
-    return fit(problem, ERM(), X, new_y)
-end
-
-function fit(rng::AbstractRNG, problem::Problem, ::FullResampling, X, y, w_star)
-    n, d = size(X)
-    new_X = sample_data(rng, problem, n, d)
+function StatsAPI.fit(
+    rng::AbstractRNG,
+    problem::Problem,
+    ::FullResampling,
+    X::AbstractMatrix,
+    y::AbstractVector,
+    w_star::AbstractVector,
+)
+    n = length(y)
+    new_X = sample_data(rng, problem, n)
     new_y = sample_labels(rng, problem, X, w_star)
     return fit(problem, ERM(), new_X, new_y)
 end
 
-function fit(rng::AbstractRNG, problem::Problem, ::LabelResampling, X, y, w_star)
+function StatsAPI.fit(
+    rng::AbstractRNG,
+    problem::Problem,
+    ::LabelResampling,
+    X::AbstractMatrix,
+    y::AbstractVector,
+    w_star::AbstractVector,
+)
     new_y = sample_labels(rng, problem, X, w_star)
     return fit(problem, ERM(), X, new_y)
 end

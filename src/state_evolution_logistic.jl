@@ -43,16 +43,6 @@ function gₒᵤₜ_and_∂ωgₒᵤₜ(
     return gₒᵤₜ, ∂ωgₒᵤₜ
 end
 
-function gₒᵤₜ_and_∂ωgₒᵤₜ(
-    y::Integer,
-    ω::AbstractVector{<:Real},
-    V::Diagonal{<:Real},
-    p::AbstractVector{<:Real};
-    rtol::Real,
-)
-    return gₒᵤₜ_and_∂ωgₒᵤₜ(SVector(y, y), ω, V, p; rtol)
-end
-
 function Z₀_and_∂μZ₀(y::Integer, μ::Real, v::Real; rtol::Real)
     function Z₀_and_∂μZ₀_integrand(u::Real)
         z = u * sqrt(v) + μ
@@ -67,68 +57,63 @@ function Z₀_and_∂μZ₀(y::Integer, μ::Real, v::Real; rtol::Real)
     return Z₀, ∂μZ₀
 end
 
-function Z₀_and_∂μZ₀(y::AbstractVector{<:Integer}, μ::Real, v::Real; rtol::Real)
-    Z₀1, ∂μZ₀1 = Z₀_and_∂μZ₀(y[1], μ, v; rtol)
-    Z₀2, ∂μZ₀2 = Z₀_and_∂μZ₀(y[2], μ, v; rtol)
-    Z₀, ∂μZ₀ = Z₀1 * Z₀2, ∂μZ₀1 * ∂μZ₀2
+function Z₀_and_∂μZ₀(
+    y::AbstractVector{<:Integer}, μ::Real, v::Real, same_labels::Bool; rtol::Real
+)
+    if same_labels
+        Z₀, ∂μZ₀ = Z₀_and_∂μZ₀(y[1], μ, v; rtol)
+    else
+        Z₀1, ∂μZ₀1 = Z₀_and_∂μZ₀(y[1], μ, v; rtol)
+        Z₀2, ∂μZ₀2 = Z₀_and_∂μZ₀(y[2], μ, v; rtol)
+        Z₀, ∂μZ₀ = Z₀1 * Z₀2, ∂μZ₀1 * ∂μZ₀2
+    end
     return Z₀, ∂μZ₀
 end
 
-## Update overlaps
-
-function update_overlaps(
-    problem::Logistic, algo::Algorithm, overlaps::O, hatoverlaps::O; rtol::Real
-) where {O<:Overlaps{1}}
-    m_hat, Q_hat, V_hat = hatoverlaps.m, hatoverlaps.Q, hatoverlaps.V
-    (; λ, ρ) = problem
-    m = ρ * m_hat / (λ + V_hat)
-    Q = (ρ * m_hat^2 + Q_hat) / (λ + V_hat)^2
-    V = inv(λ + V_hat)
-    @assert ρ - dot(m, inv(Q) * m) >= 0
-    return O(m, Q, V)
-end
-
-## Update hat overlaps
-
-function update_hatoverlaps(
-    problem::Logistic, algo::Algorithm, overlaps::O, hatoverlaps::O; rtol::Real
-) where {O<:Overlaps{1}}
+function update_hatoverlaps_summand(
+    problem::Logistic,
+    algo1::Algorithm,
+    algo2::Algorithm,
+    overlaps::Overlaps{false},
+    p::AbstractVector{<:Integer};
+    rtol::Real,
+)
     (; m, Q, V) = overlaps
     (; α, ρ) = problem
 
     Q⁻¹ = inv(Q)
     Q_sqrt = sqrt(Q)
     v_star = ρ - dot(m, Q⁻¹ * m)
-    @assert v_star >= 0
 
-    m_hat, Q_hat, V_hat = zero(m), zero(Q), zero(V)
+    Δm_hat, ΔQ_hat, ΔV_hat = zero(m), zero(Q), zero(V)
 
-    for p in weight_range(algo)
-        proba = weight_dist(algo, p)
-        iszero(proba) && continue
-
-        for y in (-1, 1)
-            function triple_integrand(u::Real)
-                ω = Q_sqrt * u
-                μ = m * Q⁻¹ * ω
-
-                Z₀, ∂μZ₀ = Z₀_and_∂μZ₀(y, μ, v_star; rtol)
-                gₒᵤₜ, ∂ωgₒᵤₜ = gₒᵤₜ_and_∂ωgₒᵤₜ(y, ω, V, p; rtol)
-
-                Im = ∂μZ₀ * gₒᵤₜ
-                IQ = Z₀ * gₒᵤₜ^2
-                IV = Z₀ * ∂ωgₒᵤₜ
-                res = SVector(Im, IQ, IV) * normpdf(u)
-                return res
-            end
-
-            bound = 10.0
-            triple_integral, err = quadgk(triple_integrand, -bound, bound; rtol)
-            m_hat += α * proba * triple_integral[1]
-            Q_hat += α * proba * triple_integral[2]
-            V_hat -= α * proba * triple_integral[3]
+    for y1 in (-1, 1), y2 in (-1, 1)
+        if same_labels(algo1, algo2) && y1 != y2
+            continue
         end
+        y = SVector(y1, y2)
+
+        function integrand(u::AbstractVector)
+            ω = Q_sqrt * u
+            μ = dot(m, Q⁻¹ * ω)
+
+            Z₀, ∂μZ₀ = Z₀_and_∂μZ₀(y, μ, v_star, same_labels(algo1, algo2); rtol)
+            gₒᵤₜ, ∂ωgₒᵤₜ = gₒᵤₜ_and_∂ωgₒᵤₜ(y, ω, V, p; rtol)
+
+            Im = ∂μZ₀ * gₒᵤₜ
+            IQ = Z₀ * gₒᵤₜ * gₒᵤₜ'
+            IV = -Z₀ * ∂ωgₒᵤₜ
+
+            return vcat(Im, vec(IQ), IV.diag) * prod(normpdf, u)
+        end
+
+        bound = SVector(10.0, 10.0)
+        integral, err = hcubature(integrand, -bound, +bound; rtol)
+
+        Δm_hat += SVector(integral[1], integral[2])
+        ΔQ_hat += SMatrix{2,2}(integral[3], integral[4], integral[5], integral[6])
+        ΔV_hat += Diagonal(SVector(integral[7], integral[8]))
     end
 
-    return O(m_hat, Q_hat, V_hat)
+    return Overlaps{true}(Δm_hat, ΔQ_hat, ΔV_hat)
 end

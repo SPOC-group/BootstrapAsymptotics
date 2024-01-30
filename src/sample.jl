@@ -1,9 +1,11 @@
-function sample_data(rng::AbstractRNG, ::Problem, n::Integer, d::Integer)
+function sample_data(rng::AbstractRNG, problem::Problem, n::Integer)
+    d = ceil(Int, n / problem.α)
     X = randn(rng, n, d) ./ sqrt(d)
     return X
 end
 
-function sample_weights(rng::AbstractRNG, ::Problem, d::Integer)
+function sample_weights(rng::AbstractRNG, problem::Problem, n::Integer)
+    d = ceil(Int, n / problem.α)
     w = randn(rng, d) ./ sqrt(d)
     return w
 end
@@ -22,7 +24,9 @@ function sample_labels(
     return y
 end
 
-function fit(::Ridge, ::ERM, X::AbstractMatrix, y::AbstractVector)
-    w = (X' * X + λ * I) \ (X' * y)
-    return w
+function sample_all(rng::AbstractRNG, problem::Problem, n::Integer)
+    X = sample_data(rng, problem, n)
+    w = sample_weights(rng, problem, n)
+    y = sample_labels(rng, problem, X, w)
+    return (; X, w, y)
 end

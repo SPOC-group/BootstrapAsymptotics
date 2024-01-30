@@ -43,7 +43,6 @@ function state_evolution(
     max_iteration=100,
     show_progress::Bool=true,
 )
-    @info "State evolution" problem algo1 algo2
     overlaps, hatoverlaps = Overlaps{false}(), Overlaps{true}()
     converged, nb_iterations = false, max_iteration
     p = Progress(max_iteration; desc="State evolution", enabled=show_progress)

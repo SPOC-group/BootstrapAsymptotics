@@ -41,7 +41,7 @@ function state_evolution(
     algo2::Algorithm;
     rtol=1e-4,
     max_iteration=100,
-    show_progress::Bool=true,
+    show_progress::Bool=false,
 )
     overlaps, hatoverlaps = Overlaps{false}(), Overlaps{true}()
     converged, nb_iterations = false, max_iteration

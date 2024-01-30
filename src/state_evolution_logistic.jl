@@ -1,12 +1,3 @@
-function logistic_der(x::Real)
-    s = logistic(x)
-    return s * (1 - s)
-end
-
-logistic_loss(y, z) = log1pexp(-y * z)
-logistic_loss_der(y, z) = -y * logistic(-y * z)
-logistic_loss_der2(y, z) = y^2 * logistic_der(-y * z)
-
 function gₒᵤₜ_and_∂ωgₒᵤₜ(y::Integer, ω::Real, V::Real, p::Real; rtol::Real)
     objective(z::Real) = abs2(z - ω) / (2V) + p * logistic_loss(y, z)
     gradient(_, z::Real) = (z - ω) / V + p * logistic_loss_der(y, z)

@@ -1,26 +1,39 @@
 # BootstrapAsymptotics
 
-## Setting
+## Getting started
 
-Gaussian input $X$, labels $y$ generated either with an additive Gaussian noise or with a logistic model.
+Open a Julia console and run:
 
-## Algorithms
+```julia
+pkg> add https://github.com/SPOC-group/BootstrapAsymptotics
 
-- Pair bootstrap : sample the dataset $X, y$ with replacement (or in our model with a Poisson law of parameter 1)
-- Full resampling (of dataset $X, y$)
-- Parametric residual bootstrap : fit the whole dataset $X, y$ by ERM, and generate new data $y$ using the ERM estimator 
-as a new teacher and by estimating the noise variance with the residuals of the fit (i.e square error).
-- Resampling of labels $y$
+shell> cd BootstrapAsymptotics
 
-## State evolutions
+pkg> activate .
 
-|                                              | Ridge | Logistic |
-| -------------------------------------------- | ----- | -------- |
-| Pair bootstrap                               |       |          |
-| full resampling                              |       |          |
-| y resampling                                 |       |          |
-| residual bootstrap                           |       |          |
-| Correlation Pair bootstrap - Full resampling |       |          |
+pkg> instantiate
+```
+
+## Using the package
+
+```julia
+julia> using BootstrapAsymptotics
+
+julia> (; overlaps) = state_evolution(Ridge(λ=0.1), PairBootstrap(), PairBootstrap());
+
+julia> Matrix(overlaps.Q)
+2×2 Matrix{Float64}:
+ 1.35642   0.799808
+ 0.799808  1.35642
+```
+
+## Reproducing the plots
+
+```julia
+pkg> activate docs
+
+julia> include("docs/plots.jl")
+```
 
 ## Notations
 

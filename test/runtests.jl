@@ -8,14 +8,11 @@ using Test
     @testset "Code quality" begin
         Aqua.test_all(BootstrapAsymptotics; ambiguities=false)
     end
-    @testset "Sample" begin
-        include("sample.jl")
-    end
-    @testset "Fit" begin
-        include("fit.jl")
-    end
     @testset "State evolution" begin
         include("state_evolution.jl")
+    end
+    @testset "Variance" begin
+        include("variance.jl")
     end
     # @testset "Comparison" begin
     #     include("../comparison/ridge.jl")

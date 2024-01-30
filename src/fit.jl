@@ -1,11 +1,24 @@
-function StatsAPI.fit(::Logistic, ::ERM, X::AbstractMatrix, y::AbstractVector)
-    return error("not implemented")
+## ERM
+
+function StatsAPI.fit(problem::Logistic, ::ERM, X::AbstractMatrix, y::AbstractVector)
+    (; λ) = problem
+    model = MLJLinearModels.LogisticRegression(
+        λ; fit_intercept=false, scale_penalty_with_samples=false
+    )
+    w = MLJLinearModels.fit(model, X, y)
+    return w
 end
 
 function StatsAPI.fit(problem::Ridge, ::ERM, X::AbstractMatrix, y::AbstractVector)
-    w = (X' * X + problem.λ * I) \ (X' * y)
+    (; λ) = problem
+    model = MLJLinearModels.RidgeRegression(
+        λ; fit_intercept=false, scale_penalty_with_samples=false
+    )
+    w = MLJLinearModels.fit(model, X, y)
     return w
 end
+
+## Fallbacks
 
 function StatsAPI.fit(
     ::AbstractRNG, problem::Problem, algo::Algorithm, X::AbstractMatrix, y::AbstractVector
@@ -14,16 +27,17 @@ function StatsAPI.fit(
 end
 
 function StatsAPI.fit(
-    rng,
-    ::AbstractRNG,
+    rng::AbstractRNG,
     problem::Problem,
-    algo::ERM,
+    algo::Algorithm,
     X::AbstractMatrix,
     y::AbstractVector,
     w_star::AbstractVector,
 )
     return fit(rng, problem, algo, X, y)
 end
+
+## Resampling
 
 function StatsAPI.fit(
     rng::AbstractRNG,
@@ -59,7 +73,7 @@ function StatsAPI.fit(
 )
     n = length(y)
     new_X = sample_data(rng, problem, n)
-    new_y = sample_labels(rng, problem, X, w_star)
+    new_y = sample_labels(rng, problem, new_X, w_star)
     return fit(problem, ERM(), new_X, new_y)
 end
 

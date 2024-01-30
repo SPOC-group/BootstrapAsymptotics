@@ -6,7 +6,7 @@ end
 
 function sample_weights(rng::AbstractRNG, problem::Problem, n::Integer)
     d = ceil(Int, n / problem.α)
-    w = randn(rng, d) ./ sqrt(d)
+    w = randn(rng, d)
     return w
 end
 
@@ -20,7 +20,7 @@ function sample_labels(
     rng::AbstractRNG, ::Ridge, X::AbstractMatrix, w::AbstractVector; Δ::Real=1
 )
     n = size(X, 1)
-    y = X * w .+ Δ .* randn(rng, n)
+    y = X * w .+ sqrt.(Δ) .* randn(rng, n)
     return y
 end
 

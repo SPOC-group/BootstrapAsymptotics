@@ -1,9 +1,9 @@
 function update_overlaps(problem::Problem, hatoverlaps::Overlaps{true};)
     m_hat, Q_hat, V_hat = hatoverlaps.m, hatoverlaps.Q, hatoverlaps.V
-    (; λ) = problem
+    (; λ, ρ) = problem
     R = inv(λ * I + V_hat)
-    m = R * m_hat
-    Q = (R * (m_hat * m_hat' + Q_hat) * R')
+    m = ρ .* R * m_hat
+    Q = (R * (ρ .* m_hat * m_hat' + Q_hat) * R')
     V = R
     return Overlaps{false}(m, Q, V)
 end

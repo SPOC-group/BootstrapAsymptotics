@@ -22,7 +22,7 @@ end
 
 function Overlaps{hat}() where {hat}
     m = SVector(0.0, 0.0)
-    Q = SMatrix{2,2}(1.0, 0.01, 0.01, 1.0)
+    Q = SMatrix{2,2}(1.0, 0.0, 0.0, 1.0)
     V = Diagonal(SVector(1.0, 1.0))
     return Overlaps{hat}(m, Q, V)
 end

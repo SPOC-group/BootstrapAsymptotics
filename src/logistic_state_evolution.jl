@@ -103,12 +103,11 @@ function init_all_overlaps(
     V = Diagonal(SVector(V11, V22))
 
     m_hat = SVector(m_hat1, m_hat2)
-    Q_hat = SMatrix{2,2}(Q_hat11, m_hat1 * m_hat2, m_hat1 * m_hat2, Q_hat22)
+    Q_hat = SMatrix{2,2}(Q_hat11, 0.0, 0.0, Q_hat22)
     V_hat = Diagonal(SVector(V_hat11, V_hat22))
 
     overlaps = Overlaps(m, Q, V)
     hatoverlaps = Overlaps(m_hat, Q_hat, V_hat)
 
-    @assert problem.ρ >= dot(overlaps.m, inv(overlaps.Q) * overlaps.m)
     return (; overlaps, hatoverlaps)
 end

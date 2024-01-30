@@ -1,10 +1,8 @@
 abstract type Algorithm end
-abstract type BootstrapAlgorithm <: Algorithm end
 
 struct ERM <: Algorithm end
 struct FullResampling <: Algorithm end
 struct LabelResampling <: Algorithm end
-struct ResidualBootstrap <: Algorithm end
 
 @kwdef struct PairBootstrap <: Algorithm
     p_max::Int = 8
@@ -14,31 +12,29 @@ end
     r::Float64 = 1.0
 end
 
-## Weight ranges
+## Labels
 
-# TODO: control error
+same_labels(::Algorithm, ::Algorithm) = true
+same_labels(::LabelResampling, ::LabelResampling) = false
+
+## Weight ranges
 
 weight_range(::Algorithm) = 0:1
 weight_range(algo::PairBootstrap) = 0:(algo.p_max)
-weight_range(algo::ResidualBootstrap) = 0:(algo.p_max)
 
 ## Weight distributions
 
-# Single
+bernpdf(r::Real, p::Integer) = isone(p) ? r : one(r) - r
 
 weight_dist(::Algorithm, p::Integer) = isone(p)
 weight_dist(::PairBootstrap, p::Integer) = poispdf(1, p)
-
-function weight_dist(algo::SubsamplingBootstrap, p::Integer)
-    return isone(p) ? algo.r : one(algo.r) - algo.r
-end
-
-# Double
+weight_dist(algo::SubsamplingBootstrap, p::Integer) = bernpdf(algo.r, p)
 
 function weight_dist(algo1::Algorithm, algo2::Algorithm, p1::Integer, p2::Integer)
     return weight_dist(algo1, p1) * weight_dist(algo2, p2)
 end
 
 function weight_dist(::FullResampling, ::FullResampling, p1::Integer, p2::Integer)
-    return ((isone(p1) && iszero(p2)) + (iszero(p1) && isone(p2)))  # sums to 2
+    # warning: we include the factor 2 here
+    return ((isone(p1) && iszero(p2)) + (iszero(p1) && isone(p2)))
 end

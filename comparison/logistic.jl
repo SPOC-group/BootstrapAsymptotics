@@ -7,6 +7,14 @@ using LogisticBootstrapStateEvolution: LogisticBootstrapStateEvolution
 using LinearAlgebra
 using Test
 
+res1 = state_evolution(
+    Logistic(; α=2.0, λ=1.0),
+    PairBootstrap(; p_max=10),
+    PairBootstrap(; p_max=10);
+    rtol=1e-4,
+    max_iteration=100,
+)
+
 @time res1 = state_evolution(
     Logistic(; α=2.0, λ=1.0),
     PairBootstrap(; p_max=10),

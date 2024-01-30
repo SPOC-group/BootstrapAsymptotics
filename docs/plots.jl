@@ -6,7 +6,10 @@ using ProgressMeter
 using Statistics
 using StableRNGs
 
-pgfplotsx()
+#=
+using PGFPlotsX
+pgfplotsx()  # for LaTeX-compatible plots
+=#
 
 nthreads()
 
@@ -15,7 +18,7 @@ rng = StableRNG(10)
 d = 200
 K = 20
 λ = 0.1
-setting = :ridge
+setting = :logistic
 
 α_vals = 10 .^ (-1:0.2:1)
 algo_vals = [
@@ -32,6 +35,7 @@ vars_emp = Dict(algo => fill(NaN, length(α_vals)) for algo in algo_vals)
 vars_se = Dict(algo => fill(NaN, length(α_vals)) for algo in algo_vals)
 
 for algo in algo_vals
+    algo isa LabelResampling || continue
     @threads for i in eachindex(α_vals)
         α = α_vals[i]
         @info "$algo - α=$α"
@@ -40,7 +44,7 @@ for algo in algo_vals
         var_se = variance_state_evolution(
             problem,
             algo;
-            check_convergence=true,
+            check_convergence=false,
             show_progress=false,
             rtol=1e-4,
             max_iteration=100,
@@ -52,7 +56,6 @@ end
 
 pl = plot(; title=setting == :ridge ? "Ridge(λ=$λ)" : "Logistic(λ=$λ)")
 for (i, algo) in enumerate(algo_vals)
-    # algo isa FullResampling || continue
     scatter!(pl, α_vals, vars_emp[algo]; label="$algo", color=colors[i])
     plot!(pl, α_vals, vars_se[algo]; label=nothing, lw=2, color=colors[i])
 end

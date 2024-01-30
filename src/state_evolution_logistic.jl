@@ -34,30 +34,38 @@ function gₒᵤₜ_and_∂ωgₒᵤₜ(
     return gₒᵤₜ, ∂ωgₒᵤₜ
 end
 
-function Z₀_and_∂μZ₀(y::Integer, μ::Real, v::Real; rtol::Real)
-    function Z₀_and_∂μZ₀_integrand(u::Real)
-        z = u * sqrt(v) + μ
-        σ = logistic(y * z)
-        res = SVector(σ, y * σ * (1 - σ)) * normpdf(u)
-        return res
-    end
-    bound = 10.0
-    double_integral, err = quadgk(Z₀_and_∂μZ₀_integrand, -bound, bound; rtol)
-    Z₀ = double_integral[1]
-    ∂μZ₀ = double_integral[2]
-    return Z₀, ∂μZ₀
-end
-
 function Z₀_and_∂μZ₀(
     y::AbstractVector{<:Integer}, μ::Real, v::Real, same_labels::Bool; rtol::Real
 )
-    if same_labels
-        Z₀, ∂μZ₀ = Z₀_and_∂μZ₀(y[1], μ, v; rtol)
-    else
-        Z₀1, ∂μZ₀1 = Z₀_and_∂μZ₀(y[1], μ, v; rtol)
-        Z₀2, ∂μZ₀2 = Z₀_and_∂μZ₀(y[2], μ, v; rtol)
-        Z₀, ∂μZ₀ = Z₀1 * Z₀2, ∂μZ₀1 * ∂μZ₀2
+    function Z₀_and_∂μZ₀_integrand_same_labels(u::Real)
+        z = u * sqrt(v) + μ
+        σ = logistic(y[1] * z)
+        σ_der = σ * (1 - σ)
+        res = SVector(σ, y[1] * σ_der) * normpdf(u)
+        return res
     end
+    function Z₀_and_∂μZ₀_integrand_different_labels(u::Real)
+        z = u * sqrt(v) + μ
+        σ1 = logistic(y[1] * z)
+        σ2 = logistic(y[2] * z)
+        σ1_der = σ1 * (1 - σ1)
+        σ2_der = σ2 * (1 - σ2)
+        res = SVector(σ1 * σ2, y[1] * σ1_der * σ2 + y[2] * σ2_der * σ1) * normpdf(u)
+        return res
+    end
+    bound = 10.0
+    if same_labels
+        @assert y[1] == y[2]
+        double_integral, err = quadgk(
+            Z₀_and_∂μZ₀_integrand_same_labels, -bound, bound; rtol
+        )
+    else
+        double_integral, err = quadgk(
+            Z₀_and_∂μZ₀_integrand_different_labels, -bound, bound; rtol
+        )
+    end
+    Z₀ = double_integral[1]
+    ∂μZ₀ = double_integral[2]
     return Z₀, ∂μZ₀
 end
 

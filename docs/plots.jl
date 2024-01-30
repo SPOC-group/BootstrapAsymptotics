@@ -43,7 +43,7 @@ for algo in algo_vals
         var_se = variance_state_evolution(
             problem,
             algo;
-            check_convergence=false,
+            check_convergence=true,
             show_progress=false,
             rtol=1e-4,
             max_iteration=100,

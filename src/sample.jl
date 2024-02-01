@@ -17,10 +17,10 @@ function sample_labels(rng::AbstractRNG, ::Logistic, X::AbstractMatrix, w::Abstr
 end
 
 function sample_labels(
-    rng::AbstractRNG, ::Ridge, X::AbstractMatrix, w::AbstractVector; Δ::Real=1
+    rng::AbstractRNG, problem::Ridge, X::AbstractMatrix, w::AbstractVector; 
 )
     n = size(X, 1)
-    y = X * w .+ sqrt.(Δ) .* randn(rng, n)
+    y = X * w .+ sqrt.(problem.Δ) .* randn(rng, n)
     return y
 end
 

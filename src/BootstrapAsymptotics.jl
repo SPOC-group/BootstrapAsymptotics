@@ -32,7 +32,7 @@ include("bias_variance.jl")
 
 export Overlaps
 export Ridge, Logistic
-export PairBootstrap, SubsamplingBootstrap
+export PairBootstrap, SubsamplingBootstrap, ResidualBootstrap
 export ERM, LabelResampling, FullResampling
 export sample_data, sample_weights, sample_labels, sample_all
 export fit

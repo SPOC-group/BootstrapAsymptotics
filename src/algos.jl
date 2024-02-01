@@ -12,6 +12,9 @@ end
     r::Float64 = 1.0
 end
 
+@kwdef struct ResidualBootstrap <: Algorithm
+end
+
 ## Labels
 
 same_labels(::Algorithm, ::Algorithm) = true

@@ -2,7 +2,6 @@ module BootstrapAsymptotics
 
 using Base.Iterators: product
 using HCubature: hcubature
-using IntervalArithmetic: interval
 using LinearAlgebra: Diagonal, Symmetric, I, dot, norm
 using LogExpFunctions: log1pexp
 using MLJLinearModels: MLJLinearModels

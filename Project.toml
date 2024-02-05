@@ -1,6 +1,6 @@
 name = "BootstrapAsymptotics"
 uuid = "d307ed22-b47c-43c3-8c4d-624c6f851e79"
-authors = ["SPOC and IdePHICS labs"]
+authors = ["Anonymous authors"]
 version = "0.1.0"
 
 [deps]

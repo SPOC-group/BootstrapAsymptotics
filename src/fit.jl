@@ -88,3 +88,40 @@ function StatsAPI.fit(
     new_y = sample_labels(rng, problem, X, w_star)
     return fit(problem, ERM(), X, new_y)
 end
+
+## Bayes optimal
+
+function StatsAPI.fit(
+    rng::AbstractRNG, ::Ridge, algo::BayesOpt, X::AbstractMatrix, y::AbstractVector;
+)
+    c = Turing.sample(
+        rng,
+        model_ridge(X, y),
+        algo.sampler,
+        algo.nb_samples;
+        drop_warmup=true,
+        verbose=false,
+        progress=false,
+    )
+    w_samples = group(c, :w).value
+    w_mean = dropdims(mean(w_samples; dims=(1, 3)); dims=(1, 3))
+    return Vector(w_mean)
+end
+
+function StatsAPI.fit(
+    rng::AbstractRNG, ::Logistic, algo::BayesOpt, X::AbstractMatrix, y::AbstractVector;
+)
+    y_bin = Bool.((y .+ 1) .÷ 2)
+    c = Turing.sample(
+        rng,
+        model_logistic(X, y_bin),
+        algo.sampler,
+        algo.nb_samples;
+        drop_warmup=true,
+        verbose=false,
+        progress=false,
+    )
+    w_samples = group(c, :w).value
+    w_mean = dropdims(mean(w_samples; dims=(1, 3)); dims=(1, 3))
+    return Vector(w_mean)
+end

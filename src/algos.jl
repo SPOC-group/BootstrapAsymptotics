@@ -12,7 +12,11 @@ end
     r::Float64 = 1.0
 end
 
-@kwdef struct ResidualBootstrap <: Algorithm
+@kwdef struct ResidualBootstrap <: Algorithm end
+
+@kwdef struct BayesOpt{S} <: Algorithm
+    sampler::S = NUTS(; adtype=AutoReverseDiff())
+    nb_samples::Int = 100
 end
 
 ## Labels
@@ -27,6 +31,7 @@ weight_range(algo::PairBootstrap) = 0:(algo.p_max)
 
 ## Weight distributions
 
+weight_dist(::BayesOpt, p::Integer) = error("No state evolution for BayesOpt")
 weight_dist(::Algorithm, p::Integer) = isone(p)
 weight_dist(::PairBootstrap, p::Integer) = poispdf(1, p)
 weight_dist(algo::SubsamplingBootstrap, p::Integer) = bernpdf(algo.r, p)

@@ -1,3 +1,6 @@
+using Pkg
+Pkg.activate(@__DIR__)
+
 using Base.Threads
 using BootstrapAsymptotics
 using Colors
@@ -28,7 +31,7 @@ algo_vals = [
     SubsamplingBootstrap(0.99), #
     FullResampling(), #
     LabelResampling(),
-    ResidualBootstrap() #
+    ResidualBootstrap(), #
 ]
 colors = distinguishable_colors(
     length(algo_vals), [RGB(1, 1, 1), RGB(0, 0, 0)]; dropseed=true
@@ -47,7 +50,6 @@ for algo in algo_vals
         var_se = variance_state_evolution(
             problem,
             algo;
-
             check_convergence=false,
             show_progress=false,
             rtol=1e-4,
@@ -68,10 +70,5 @@ pl = plot!(pl; xlabel="α", ylabel="variance", xscale=:log, yscale=:log, legend=
 savefig(pl, joinpath(@__DIR__, "plots", "plot.tex"))
 
 open("tmp.json", "w") do f
-    JSON.write(f, 
-        JSON.json(Dict(
-            "α_vals" => α_vals,
-            "vars_emp" => vars_emp,
-        )),
-    )
+    JSON.write(f, JSON.json(Dict("α_vals" => α_vals, "vars_emp" => vars_emp)))
 end

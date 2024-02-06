@@ -35,11 +35,11 @@ function bias_variance_empirical(
     w_est = fit(problem, ERM(), X, y)
 
     if problem isa Ridge
-        problem_residual = Ridge(ρ = norm(w_est)^2 / d, α = problem.α, λ = problem.λ, Δ = 
-            norm(y - X * w_est)^2 / n
-        )   
+        problem_residual = Ridge(;
+            ρ=norm(w_est)^2 / d, α=problem.α, λ=problem.λ, Δ=norm(y - X * w_est)^2 / n
+        )
     else
-        problem_residual = Logistic(ρ = norm(w_est)^2 / d, α = problem.α, λ = problem.λ)   
+        problem_residual = Logistic(; ρ=norm(w_est)^2 / d, α=problem.α, λ=problem.λ)
     end
 
     w_samples = [fit(rng, problem_residual, LabelResampling(), X, y, w_est) for k in 1:K]
@@ -70,15 +70,25 @@ function variance_state_evolution(
 
     # check if problem is instance of Ridge
     if problem isa Ridge
-        problem_residual = Ridge(ρ = result_erm.overlaps.Q[1, 1], α = problem.α, λ = problem.λ, Δ = 
-            (problem.ρ + result_erm.overlaps.Q[1, 1] - 2 * result_erm.overlaps.m[1] + problem.Δ) / (1.0 + result_erm.overlaps.V[1])^2.
-        )   
+        problem_residual = Ridge(;
+            ρ=result_erm.overlaps.Q[1, 1],
+            α=problem.α,
+            λ=problem.λ,
+            Δ=(
+                problem.ρ + result_erm.overlaps.Q[1, 1] - 2 * result_erm.overlaps.m[1] +
+                problem.Δ
+            ) / (1.0 + result_erm.overlaps.V[1])^2.0,
+        )
     else
-        problem_residual = Logistic(ρ = result_erm.overlaps.Q[1, 1], α = problem.α, λ = problem.λ)   
+        problem_residual = Logistic(;
+            ρ=result_erm.overlaps.Q[1, 1], α=problem.α, λ=problem.λ
+        )
     end
 
-    result = state_evolution(problem_residual, LabelResampling(), LabelResampling(); kwargs...)
-    
+    result = state_evolution(
+        problem_residual, LabelResampling(), LabelResampling(); kwargs...
+    )
+
     variance = result.overlaps.Q[1, 1] - result.overlaps.Q[1, 2]
     return variance
 end

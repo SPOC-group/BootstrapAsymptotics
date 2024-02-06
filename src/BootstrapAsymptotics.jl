@@ -9,17 +9,30 @@ using NLSolvers: NLSolvers
 using ProgressMeter: Progress, next!
 using QuadGK: quadgk
 using Random: AbstractRNG
+using ReverseDiff: ReverseDiff
 using StableRNGs: StableRNG
 using Statistics: mean
 using StatsBase: sample
 using StatsAPI: StatsAPI, fit
 using StatsFuns: normpdf, poispdf, logistic
 using StaticArrays: SVector, SMatrix
+using Turing:
+    Turing,
+    AutoReverseDiff,
+    Bernoulli,
+    MvNormal,
+    Normal,
+    NUTS,
+    @model,
+    filldist,
+    arraydist,
+    group
 
 include("utils.jl")
 include("problems.jl")
 include("algos.jl")
 
+include("generative.jl")
 include("fit.jl")
 include("sample.jl")
 
@@ -33,7 +46,7 @@ include("bias_variance.jl")
 export Overlaps
 export Ridge, Logistic
 export PairBootstrap, SubsamplingBootstrap, ResidualBootstrap
-export ERM, LabelResampling, FullResampling
+export ERM, BayesOpt, LabelResampling, FullResampling
 export sample_data, sample_weights, sample_labels, sample_all
 export fit
 export state_evolution

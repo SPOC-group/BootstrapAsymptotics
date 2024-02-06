@@ -17,7 +17,7 @@ function sample_labels(rng::AbstractRNG, ::Logistic, X::AbstractMatrix, w::Abstr
 end
 
 function sample_labels(
-    rng::AbstractRNG, problem::Ridge, X::AbstractMatrix, w::AbstractVector; 
+    rng::AbstractRNG, problem::Ridge, X::AbstractMatrix, w::AbstractVector;
 )
     n = size(X, 1)
     y = X * w .+ sqrt.(problem.Δ) .* randn(rng, n)

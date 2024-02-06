@@ -20,5 +20,5 @@ end
 
 function Base.show(io::IO, problem::Ridge)
     (; α, Δ, λ, ρ) = problem
-    return print(io, "Logistic(α=$(round(α, sigdigits=3)), λ=$λ, ρ=$ρ, Δ=$Δ)")
+    return print(io, "Ridge(α=$(round(α, sigdigits=3)), λ=$λ, ρ=$ρ, Δ=$Δ)")
 end

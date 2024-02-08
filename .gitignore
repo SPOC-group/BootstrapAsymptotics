@@ -3,3 +3,5 @@ scratchpad.jl
 *.png
 *.svg
 *.tex
+
+experiments/data

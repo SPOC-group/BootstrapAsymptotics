@@ -54,7 +54,7 @@ end
 function StatsAPI.fit(
     rng::AbstractRNG,
     problem::Problem,
-    algo::SubsamplingBootstrap,
+    algo::Subsampling,
     X::AbstractMatrix,
     y::AbstractVector,
 )

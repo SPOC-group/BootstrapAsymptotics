@@ -10,7 +10,7 @@ for problem in [Ridge(), Logistic()]
         for algo in [
             PairBootstrap(; p_max=5),
             FullResampling(),
-            SubsamplingBootstrap(0.8),
+            Subsampling(0.8),
             LabelResampling(),
         ]
             @testset "$(typeof(algo))" begin

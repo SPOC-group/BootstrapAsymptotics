@@ -6,7 +6,7 @@ using Test
 ## Running without errors or type instabilities
 
 algo_pairs = []
-for algo1 in [PairBootstrap(), SubsamplingBootstrap(), FullResampling()]
+for algo1 in [PairBootstrap(), Subsampling(), FullResampling()]
     push!(algo_pairs, (algo1, algo1))
     if algo1 != FullResampling()
         push!(algo_pairs, (algo1, FullResampling()))

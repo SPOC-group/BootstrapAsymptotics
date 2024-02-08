@@ -1,6 +1,3 @@
-using Pkg
-Pkg.activate(@__DIR__)
-
 using Base.Threads
 using BootstrapAsymptotics
 using Colors
@@ -31,7 +28,7 @@ algo_vals = [
     Subsampling(0.99), #
     FullResampling(), #
     LabelResampling(),
-    ResidualBootstrap(), #
+    ResidualBootstrap() #
 ]
 colors = distinguishable_colors(
     length(algo_vals), [RGB(1, 1, 1), RGB(0, 0, 0)]; dropseed=true
@@ -47,9 +44,10 @@ for algo in algo_vals
         problem = setting == :ridge ? Ridge(; λ, α) : Logistic(; λ, α)
         _, var_emp = bias_variance_empirical(rng, problem, algo; n=ceil(Int, α * d), K)
         vars_emp[algo][i] = var_emp
-        var_se = variance_state_evolution(
+        var_se = variance_state_evol4ution(
             problem,
             algo;
+
             check_convergence=false,
             show_progress=false,
             rtol=1e-4,
@@ -66,4 +64,14 @@ for (i, algo) in enumerate(algo_vals)
 end
 pl = plot!(pl; xlabel="α", ylabel="variance", xscale=:log, yscale=:log, legend=:bottom)
 
-savefig(pl, joinpath(@__DIR__, "plots", "plot.pdf"))
+# savefig(pl, joinpath(@__DIR__, "plots", "plot.pdf"))
+savefig(pl, joinpath(@__DIR__, "plots", "plot.tex"))
+
+open("tmp.json", "w") do f
+    JSON.write(f, 
+        JSON.json(Dict(
+            "α_vals" => α_vals,
+            "vars_emp" => vars_emp,
+        )),
+    )
+end

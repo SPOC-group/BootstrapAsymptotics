@@ -8,7 +8,7 @@ struct LabelResampling <: Algorithm end
     p_max::Int = 8
 end
 
-@kwdef struct SubsamplingBootstrap <: Algorithm
+@kwdef struct Subsampling <: Algorithm
     r::Float64 = 1.0
 end
 
@@ -34,7 +34,7 @@ weight_range(algo::PairBootstrap) = 0:(algo.p_max)
 weight_dist(::BayesOpt, p::Integer) = error("No state evolution for BayesOpt")
 weight_dist(::Algorithm, p::Integer) = isone(p)
 weight_dist(::PairBootstrap, p::Integer) = poispdf(1, p)
-weight_dist(algo::SubsamplingBootstrap, p::Integer) = bernpdf(algo.r, p)
+weight_dist(algo::Subsampling, p::Integer) = bernpdf(algo.r, p)
 
 function weight_dist(algo1::Algorithm, algo2::Algorithm, p1::Integer, p2::Integer)
     return weight_dist(algo1, p1) * weight_dist(algo2, p2)

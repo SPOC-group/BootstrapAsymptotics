@@ -35,6 +35,10 @@ pkg> activate docs
 julia> include("docs/plots.jl")
 ```
 
+## Computation of the Large Alpha Rates
+
+Can be found in the Mathematica notebook `experiments/large_alpha_rates.nb`
+
 ## Notations
 
 - `n`: number of samples

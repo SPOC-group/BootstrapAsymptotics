@@ -36,3 +36,9 @@ function close_enough(
         norm(overlaps.V - overlaps_ref.V, Inf) / norm(overlaps_ref.V, Inf) < rtol
     )
 end
+
+function close_enough(
+    overlap::Real, overlap_ref::Real; rtol::Real
+)
+    return norm(overlap - overlap_ref, Inf) / norm(overlap_ref, Inf) < rtol
+end

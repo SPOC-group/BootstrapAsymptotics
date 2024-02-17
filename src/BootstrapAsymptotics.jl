@@ -40,6 +40,7 @@ include("overlaps.jl")
 include("state_evolution.jl")
 include("state_evolution_ridge.jl")
 include("state_evolution_logistic.jl")
+include("state_evolution_logistic_bayesopt.jl")
 
 include("bias_variance.jl")
 
@@ -49,7 +50,7 @@ export PairBootstrap, Subsampling, ResidualBootstrap
 export ERM, BayesOpt, LabelResampling, FullResampling
 export sample_data, sample_weights, sample_labels, sample_all
 export fit
-export state_evolution
+export state_evolution, state_evolution_BayesOpt
 export bias_variance_true,
     bias_variance_empirical, variance_state_evolution, bias_state_evolution
 

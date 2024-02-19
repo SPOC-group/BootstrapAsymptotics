@@ -1,3 +1,5 @@
+using LinearAlgebra
+
 function bias_variance_true(
     rng::AbstractRNG, problem::Problem; n::Integer, K::Integer, conditional=false
 )
@@ -19,11 +21,13 @@ function bias_variance_empirical(
 )
     (; X, y, w) = sample_all(rng, problem, n)
     d = size(X, 2)
-    w_est = fit(problem, ERM(), X, y)
-    w_samples = [fit(rng, problem, algo, X, y, w) for k in 1:K]
+    w_est          = fit(problem, ERM(), X, y)
+
+    w_samples      = [ fit(rng, problem, algo, X, y, w) for k in 1:K ]
     w_samples_mean = mean(w_samples)
-    bias2 = norm(w_samples_mean - w_est)^2 / d
-    variance = mean(norm(w_samples[k] - w_samples_mean)^2 for k in 1:K) / d
+
+    bias2          = norm(w_samples_mean - w_est)^2 / d
+    variance       = mean(norm(w_samples[k] - w_samples_mean)^2 for k in 1:K) / d
     return bias2, variance
 end
 
@@ -36,18 +40,38 @@ function bias_variance_empirical(
 
     if problem isa Ridge
         problem_residual = Ridge(;
-            ρ=norm(w_est)^2 / d, α=problem.α, λ=problem.λ, Δ=norm(y - X * w_est)^2 / n
+            ρ=norm(w_est)^2 / d, α=problem.α, λ=problem.λ, Δ=norm(y - X * w_est)^2 / (n - 1)
         )
     else
         problem_residual = Logistic(; ρ=norm(w_est)^2 / d, α=problem.α, λ=problem.λ)
     end
 
-    w_samples = [fit(rng, problem_residual, LabelResampling(), X, y, w_est) for k in 1:K]
+    w_samples = [ fit(rng, problem_residual, LabelResampling(), X, y, w_est) for k in 1:K]
     w_samples_mean = mean(w_samples)
-    bias2 = norm(w_samples_mean - w_est)^2 / d
+    
+    bias2    = norm(w_samples_mean - w_est)^2 / d
     variance = mean(norm(w_samples[k] - w_samples_mean)^2 for k in 1:K) / d
     return bias2, variance
 end
+
+function bias_variance_empirical(
+    rng::AbstractRNG, problem::Problem, algo::BayesOpt; n::Integer, K::Integer
+)
+    # LC : Stupid question but is the Bayes-optimal really unbiased ?
+    # TODO : So far we don't return anything for the bias but we should implement it 
+
+    @assert problem isa Ridge
+    @assert problem.ρ == 1.0 && problem.Δ == 1.0 && problem.λ == 1.0
+
+    (; X, y, w) = sample_all(rng, problem, n)
+    d = floor(n / problem.α)
+    bias     = Inf
+    # here this is the variance w.r.t the Posterior distribution (and not w.r.t the resampling of D)
+    variance = LinearAlgebra.tr(inv(X'X + problem.λ * I)) / d
+    return bias, variance
+end
+
+## The functions below are not used apart from testing the codebase
 
 function variance_state_evolution(
     problem::Problem, algo::Algorithm; check_convergence::Bool=true, kwargs...

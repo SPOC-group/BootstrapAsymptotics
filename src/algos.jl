@@ -12,6 +12,8 @@ end
     r::Float64 = 1.0
 end
 
+# Not useful in itself as it's LabelResampling using ERM but 
+# keep it for consistency
 @kwdef struct ResidualBootstrap <: Algorithm end
 
 @kwdef struct BayesOpt{S} <: Algorithm
@@ -31,7 +33,7 @@ weight_range(algo::PairBootstrap) = 0:(algo.p_max)
 
 ## Weight distributions
 
-weight_dist(::BayesOpt, p::Integer) = error("No state evolution for BayesOpt")
+weight_dist(::BayesOpt, p::Integer) = isone(p)
 weight_dist(::Algorithm, p::Integer) = isone(p)
 weight_dist(::PairBootstrap, p::Integer) = poispdf(1, p)
 weight_dist(algo::Subsampling, p::Integer) = bernpdf(algo.r, p)

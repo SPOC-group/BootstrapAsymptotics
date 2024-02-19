@@ -70,7 +70,8 @@ function state_evolution_BayesOpt(
     rtol=1e-4,
     max_iteration=100,
 )
-    @assert problem.λ = problem.ρ
+    (; λ, ρ) = problem
+    @assert λ == (1.0 / ρ)
     q::Real     = 1.0
     q_hat::Real = 1.0
 
@@ -103,12 +104,8 @@ function state_evolution_BayesOpt(
     @assert λ == 1.0 / ρ
     # here we can afford to run the state evolution for 2d problem and 
     # only return the diagonal term
-    res = state_evolution(problem, ERM(), ERM(), rtol=rtol, max_iteration=max_iteration)
-    return (; q = res.overlaps.Q[1, 1], q_hat = res.hatoverlaps.Q[1, 1]) 
+    res = state_evolution(problem, FullResampling(), FullResampling(), rtol=rtol, max_iteration=max_iteration)
+    q = res.overlaps.Q[1, 1]
+    q_hat = res.hatoverlaps.Q[1, 1]
+    return (; q,  q_hat)
 end
-
-state_evolution_BayesOpt(
-    Ridge(α = 5.0, λ = 1.0, ρ = 1.0),
-    max_iteration=100,
-    rtol = 1e-4
-)

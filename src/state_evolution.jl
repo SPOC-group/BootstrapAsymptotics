@@ -65,3 +65,31 @@ function state_evolution(
     stats = (; converged, nb_iterations)
     return (; overlaps, hatoverlaps, stats)
 end
+
+# LC : I add a function state_evolution for the Bayes-optimal estimator, just for convenience. I cant compute the off diagonal overlaps
+# so I replace them by nothing, it's ok because for now we don't need them 
+
+function state_evolution(
+    problem::Problem,
+    ::BayesOpt,
+    ::BayesOpt;
+    rtol=1e-4,
+    max_iteration=100,
+    show_progress::Bool=false)
+
+    res = state_evolution_BayesOpt(problem; rtol, max_iteration)
+    (; ρ) = problem
+    overlaps = Overlaps{false}(
+        SVector(res.q, res.q),
+        SMatrix{2, 2}(res.q, nothing, nothing, res.q),
+        SMatrix{2, 2}(ρ - res.q, nothing, nothing, ρ - res.q),
+    )
+
+    hatoverlaps = Overlaps{true}(
+        SVector(res.q_hat, res.q_hat),
+        SMatrix{2, 2}(res.q_hat, nothing, nothing, res.q_hat),
+        SMatrix{2, 2}(res.q_hat, nothing, nothing, res.q_hat),
+    )
+
+    return (; overlaps, hatoverlaps)
+end

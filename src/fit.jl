@@ -92,19 +92,15 @@ end
 ## Bayes optimal
 
 function StatsAPI.fit(
-    rng::AbstractRNG, ::Ridge, algo::BayesOpt, X::AbstractMatrix, y::AbstractVector;
+    rng::AbstractRNG, problem::Ridge, algo::BayesOpt, X::AbstractMatrix, y::AbstractVector;
 )
-    c = Turing.sample(
-        rng,
-        model_ridge(X, y),
-        algo.sampler,
-        algo.nb_samples;
-        drop_warmup=true,
-        verbose=false,
-        progress=false,
-    )
-    w_samples = group(c, :w).value
-    w_mean = dropdims(mean(w_samples; dims=(1, 3)); dims=(1, 3))
+    # for ridge, the posterior mean is the same as the ERM with optimal regularization
+    (; ρ, Δ, λ) = problem
+    @assert Δ == 1.0 and ρ == 1.0 and λ == 1.0
+    posterior_mean = fit(problem, ERM(), X, y)
+    posterior_cov  = inv(X'X + λ * I)
+
+    # sample from the Gaussian posterior
     return Vector(w_mean)
 end
 

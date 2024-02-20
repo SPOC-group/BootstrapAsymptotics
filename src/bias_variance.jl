@@ -55,12 +55,10 @@ function bias_variance_empirical(
 end
 
 function bias_variance_empirical(
-    rng::AbstractRNG, problem::Problem, algo::BayesOpt; n::Integer, K::Integer
+    rng::AbstractRNG, problem::Ridge, algo::BayesOpt; n::Integer, K::Integer
 )
     # LC : Stupid question but is the Bayes-optimal really unbiased ?
     # TODO : So far we don't return anything for the bias but we should implement it 
-
-    @assert problem isa Ridge
     @assert problem.ρ == 1.0 && problem.Δ == 1.0 && problem.λ == 1.0
 
     (; X, y, w) = sample_all(rng, problem, n)
@@ -68,6 +66,22 @@ function bias_variance_empirical(
     bias     = Inf
     # here this is the variance w.r.t the Posterior distribution (and not w.r.t the resampling of D)
     variance = LinearAlgebra.tr(inv(X'X + problem.λ * I)) / d
+    return bias, variance
+end
+
+function bias_variance_empirical(
+    rng::AbstractRNG, problem::Logistic, algo::BayesOpt; n::Integer, K::Integer
+)
+    @assert problem.ρ == 1.0 && problem.λ == 1.0
+    (; X, y, w) = sample_all(rng, problem, n)
+    d = floor(n / problem.α)
+
+    xhat, vhat = gamp(problem, X, y)
+    
+    bias     = Inf
+    # here this is the variance w.r.t the Posterior distribution (and not w.r.t the resampling of D)
+    variance = mean(vhat)
+
     return bias, variance
 end
 

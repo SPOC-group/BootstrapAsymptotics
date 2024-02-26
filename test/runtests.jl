@@ -14,12 +14,4 @@ using Test
     @testset "Variance" begin
         include("variance.jl")
     end
-    @testset "Bayes optimal" begin
-        include("bayesopt.jl")
-    end
-    # @testset "Comparison" begin
-    #     include("../comparison/ridge.jl")
-    #     include("../comparison/logistic.jl")
-    #     Pkg.activate(dirname(@__DIR__))
-    # end
 end

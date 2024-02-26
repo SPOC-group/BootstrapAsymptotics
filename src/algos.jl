@@ -1,25 +1,67 @@
 abstract type Algorithm end
 
+"""
+$(TYPEDEF)
+
+Empirical Risk Minimization algorithm.
+"""
 struct ERM <: Algorithm end
+
+"""
+$(TYPEDEF)
+
+Full resampling algorithm.
+"""
 struct FullResampling <: Algorithm end
+
+"""
+$(TYPEDEF)
+
+Label resampling algorithm.
+"""
 struct LabelResampling <: Algorithm end
 
+"""
+$(TYPEDEF)
+
+Standard (pair) bootstrap algorithm.
+
+# Fields
+$(TYPEDFIELDS)
+"""
 @kwdef struct PairBootstrap <: Algorithm
+    "maximum weight for state evolution"
     p_max::Int = 8
 end
 
+"""
+$(TYPEDEF)
+
+Subsampling algorithm.
+
+# Fields
+$(TYPEDFIELDS)
+"""
 @kwdef struct Subsampling <: Algorithm
+    "subsampling fraction"
     r::Float64 = 1.0
 end
 
 # Not useful in itself as it's LabelResampling using ERM but 
 # keep it for consistency
+"""
+$(TYPEDEF)
+
+Residual bootstrap algorithm, aka ERM + label resampling.
+"""
 @kwdef struct ResidualBootstrap <: Algorithm end
 
-@kwdef struct BayesOpt{S} <: Algorithm
-    sampler::S = NUTS(; adtype=AutoReverseDiff())
-    nb_samples::Int = 100
-end
+"""
+$(TYPEDEF)
+
+Bayes optimal estimation algorithm.
+"""
+@kwdef struct BayesOpt <: Algorithm end
 
 ## Labels
 

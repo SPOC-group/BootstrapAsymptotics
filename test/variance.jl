@@ -8,10 +8,7 @@ rng = StableRNG(0)
 for problem in [Ridge(), Logistic()]
     @testset "$(typeof(problem))" begin
         for algo in [
-            PairBootstrap(; p_max=5),
-            FullResampling(),
-            Subsampling(0.8),
-            LabelResampling(),
+            PairBootstrap(; p_max=5), FullResampling(), Subsampling(0.8), LabelResampling()
         ]
             @testset "$(typeof(algo))" begin
                 _, var_emp = bias_variance_empirical(rng, problem, algo; n=100, K=50)

@@ -35,6 +35,17 @@ function update_hatoverlaps(
     return Overlaps{true}(m_hat, Q_hat, V_hat)
 end
 
+"""
+$(SIGNATURES)
+
+Peform state evolution on a `problem` for the couple `(algorithm1, algorithm2)`, by creating and then iteratively updating overlaps and hat overlaps.
+
+# Keyword arguments
+
+- `rtol`: relative tolerance used at every step of the procedure, especially to check overlap convergence
+- `max_iteration`: maximum number of overlap updates
+- `show_progress`: whether to display a progress bar
+"""
 function state_evolution(
     problem::Problem,
     algo1::Algorithm,
@@ -75,20 +86,20 @@ function state_evolution(
     ::BayesOpt;
     rtol=1e-4,
     max_iteration=100,
-    show_progress::Bool=false)
-
+    show_progress::Bool=false,
+)
     res = state_evolution_BayesOpt(problem; rtol, max_iteration)
     (; ρ) = problem
     overlaps = Overlaps{false}(
         SVector(res.q, res.q),
-        SMatrix{2, 2}(res.q, nothing, nothing, res.q),
-        SMatrix{2, 2}(ρ - res.q, nothing, nothing, ρ - res.q),
+        SMatrix{2,2}(res.q, nothing, nothing, res.q),
+        SMatrix{2,2}(ρ - res.q, nothing, nothing, ρ - res.q),
     )
 
     hatoverlaps = Overlaps{true}(
         SVector(res.q_hat, res.q_hat),
-        SMatrix{2, 2}(res.q_hat, nothing, nothing, res.q_hat),
-        SMatrix{2, 2}(res.q_hat, nothing, nothing, res.q_hat),
+        SMatrix{2,2}(res.q_hat, nothing, nothing, res.q_hat),
+        SMatrix{2,2}(res.q_hat, nothing, nothing, res.q_hat),
     )
 
     return (; overlaps, hatoverlaps)

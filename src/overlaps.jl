@@ -1,3 +1,12 @@
+"""
+$(TYPEDEF)
+
+Overlap or hat overlap storage for state evolution between two algorithms.
+
+# Fields
+
+$(TYPEDFIELDS)
+"""
 struct Overlaps{hat,T1<:AbstractVector,T2<:AbstractMatrix,T3<:AbstractMatrix}
     m::T1
     Q::T2
@@ -37,8 +46,6 @@ function close_enough(
     )
 end
 
-function close_enough(
-    overlap::Real, overlap_ref::Real; rtol::Real
-)
+function close_enough(overlap::Real, overlap_ref::Real; rtol::Real)
     return norm(overlap - overlap_ref, Inf) / norm(overlap_ref, Inf) < rtol
 end

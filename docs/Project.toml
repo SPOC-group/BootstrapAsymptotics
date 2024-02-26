@@ -1,0 +1,3 @@
+[deps]
+BootstrapAsymptotics = "d307ed22-b47c-43c3-8c4d-624c6f851e79"
+Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"

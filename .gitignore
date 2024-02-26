@@ -5,3 +5,5 @@ scratchpad.jl
 *.tex
 
 experiments/data
+docs/src/index.md
+docs/build/

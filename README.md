@@ -1,17 +1,23 @@
 # BootstrapAsymptotics
 
+[![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://SPOC-group.github.io/BootstrapAsymptotics/dev/)
+[![Build Status](https://github.com/SPOC-group/BootstrapAsymptotics/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/SPOC-group/BootstrapAsymptotics/actions/workflows/test.yml?query=branch%3Amain)
+[![Code Style: Blue](https://img.shields.io/badge/code%20style-blue-4495d1.svg)](https://github.com/JuliaDiff/BlueStyle)
+
+Code for the paper
+
+> _Analysis of Bootstrap and Subsampling in High-dimensional Regularized Regression_
+> 
+> Clarté et al. (2024), [arXiv:2402.13622](https://arxiv.org/abs/2402.13622)
+
 ## Getting started
 
 Open a Julia console and run:
 
 ```julia
-pkg> add https://github.com/SPOC-group/BootstrapAsymptotics
+julia> using Pkg
 
-shell> cd BootstrapAsymptotics
-
-pkg> activate .
-
-pkg> instantiate
+julia> Pkg.add(url="https://github.com/SPOC-group/BootstrapAsymptotics")
 ```
 
 ## Using the package
@@ -29,15 +35,11 @@ julia> Matrix(overlaps.Q)
 
 ## Reproducing the plots
 
-```julia
-pkg> activate docs
+Open the Jupyter notebooks in the `experiments` folder, select the Julia environment defined in the same folder, and run.
 
-julia> include("docs/plots.jl")
-```
+## Computing the large $\alpha$ rates
 
-## Computation of the Large Alpha Rates
-
-Can be found in the Mathematica notebook `experiments/large_alpha_rates.nb`
+Open the Mathematica notebook `experiments/large_alpha_rates.nb`
 
 ## Notations
 

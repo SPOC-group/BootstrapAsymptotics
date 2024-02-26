@@ -1,7 +1,0 @@
-[deps]
-BootstrapAsymptotics = "d307ed22-b47c-43c3-8c4d-624c6f851e79"
-LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
-LogisticBootstrapStateEvolution = "c30d6dea-b1b5-4d77-9f9c-63f9ef141474"
-Pkg = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
-RidgeBootstrapStateEvolution = "627987d4-1aff-498a-a207-253860b67064"
-Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"

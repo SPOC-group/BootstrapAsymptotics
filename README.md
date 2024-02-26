@@ -1,8 +1,8 @@
 # BootstrapAsymptotics
 
 [![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://SPOC-group.github.io/BootstrapAsymptotics/dev/)
-[![Build Status](https://github.com/SPOC-group/BootstrapAsymptotics/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/gdalle/HiddenMarkovModels.jl/actions/workflows/test.yml?query=branch%3Amain)
-[![Code Style: Blue](https://img.shields.io/badge/code%20style-blue-4495d1.svg)](https://github.com/invenia/BlueStyle)
+[![Build Status](https://github.com/SPOC-group/BootstrapAsymptotics/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/SPOC-group/BootstrapAsymptotics/actions/workflows/test.yml?query=branch%3Amain)
+[![Code Style: Blue](https://img.shields.io/badge/code%20style-blue-4495d1.svg)](https://github.com/JuliaDiff/BlueStyle)
 
 Code for the paper
 

@@ -6,10 +6,6 @@
 
 Code for the paper
 
-> _Analysis of Bootstrap and Subsampling in High-dimensional Regularized Regression_
-> 
-> Clarté et al. (2024), [arXiv:2402.13622](https://arxiv.org/abs/2402.13622)
-
 ## Getting started
 
 Open a Julia console and run:

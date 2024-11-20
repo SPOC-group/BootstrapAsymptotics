@@ -63,6 +63,8 @@ Bayes optimal estimation algorithm.
 """
 @kwdef struct BayesOpt <: Algorithm end
 
+@kwdef struct NoResampling <: Algorithm end
+
 ## Labels
 
 same_labels(::Algorithm, ::Algorithm) = true
@@ -87,4 +89,9 @@ end
 function weight_dist(::FullResampling, ::FullResampling, p1::Integer, p2::Integer)
     # warning: we include the factor 2 here
     return ((isone(p1) * iszero(p2)) + (iszero(p1) * isone(p2)))
+end
+
+
+function weight_dist(::NoResampling, ::NoResampling, p1::Integer, p2::Integer)
+    return isone(p1) * isone(p2)
 end

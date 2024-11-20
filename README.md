@@ -49,3 +49,4 @@ Open the Mathematica notebook `experiments/large_alpha_rates.nb`
 - `Δ`: noise variance
 - `λ`: regularization parameter
 - `m`, `Q`, `V`: overlaps
+- `\gamma` : student of teacher dimension in the random features model

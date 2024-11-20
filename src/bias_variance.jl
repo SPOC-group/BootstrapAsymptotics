@@ -35,6 +35,37 @@ function bias_variance_empirical(
     return bias2, variance
 end
 
+function overlaps_empirical(
+    rng::AbstractRNG, problem::RidgeOverparametrized, ::ERM; teacher_dim::Integer, K::Integer
+)
+    (; X, y, w) = sample_all_fixed_teacher_dim(rng, problem, teacher_dim)
+    
+    w_samples = []
+    F_samples = []
+
+    student_dim = ceil(Int, teacher_dim * problem.student_over_teacher_dim)
+    for i in 1:K
+        F = sample_random_projection(rng, problem, teacher_dim)
+        push!(F_samples, F)
+        V = (problem.κ1 * X * F' + problem.κstar * randn(rng, size(X, 1), student_dim)) / sqrt(student_dim)
+        what = fit(Ridge(ρ=problem.ρ, α=problem.α, λ=problem.λ, Δ=problem.Δ), ERM(), V, y)
+        push!(w_samples, what)
+    end
+
+    # compute the gram matrix between the F' * w for the K pairs (F, w)
+    m = zeros(K)
+    Q = zeros(K, K)
+    for i in 1:K
+        m[i] = problem.κ1 * (w_samples[i]' * F_samples[i] * w / sqrt(teacher_dim)) / sqrt(student_dim * teacher_dim)
+        for j in 1:K
+            omega = problem.κ1^2 * F_samples[i] * F_samples[j]' / teacher_dim + problem.κstar^2 * I
+            Q[i, j] = w_samples[i]' * omega * w_samples[j] / student_dim
+        end
+    end
+
+    return Overlaps{false}(m, Q, zeros(K, K))
+end
+
 """
 $(SIGNATURES)
 """

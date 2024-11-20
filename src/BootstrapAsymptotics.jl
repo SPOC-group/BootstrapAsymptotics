@@ -44,13 +44,13 @@ include("gamp.jl")
 
 export Overlaps
 export Ridge, Logistic
-export PairBootstrap, Subsampling, ResidualBootstrap
+export PairBootstrap, Subsampling, ResidualBootstrap, NoResampling
 export ERM, BayesOpt, LabelResampling, FullResampling
 export sample_data, sample_weights, sample_labels, sample_all
 export fit
 export gamp
 export state_evolution, state_evolution_BayesOpt
 export bias_variance_true,
-    bias_variance_empirical, variance_state_evolution, bias_state_evolution
+    bias_variance_empirical, variance_state_evolution, bias_state_evolution, overlaps_empirical
 
 end

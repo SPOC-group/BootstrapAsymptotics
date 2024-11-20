@@ -8,6 +8,69 @@ function update_overlaps(problem::Problem, hatoverlaps::Overlaps{true};)
     return Overlaps{false}(m, Q, V)
 end
 
+function integrate_for_qvm(problem::RidgeOverparametrized, hatoverlaps::Overlaps{true};)
+    (; λ, κ1, κstar) = problem
+    q̂ = hatoverlaps.Q[1, 1]
+    v̂ = hatoverlaps.V[1, 1]
+    m̂ = hatoverlaps.m[1]
+
+    # in Python code, gamma is the inverse of η
+    η = problem.student_over_teacher_dim 
+    ηp = (κ1 * (1 + sqrt(η)))^2
+    ηm = (κ1 * (1 - sqrt(η)))^2
+    den = λ + κstar^2 * v̂
+    aux = sqrt(((ηp + κstar^2) * v̂ + λ) * ((ηm + κstar^2) * v̂ + λ))
+    aux2 = sqrt(((ηp + κstar^2) * v̂ + λ) / ((ηm + κstar^2) * v̂ + λ))
+    
+    IV = ((κstar^2 * v̂ + λ) * ((ηp + ηm) * v̂ + 2 * λ) - 
+          2 * κstar^2 * v̂^2 * sqrt(ηp * ηm) - 
+          2 * λ * aux) / (4 * η * v̂^2 * (κstar^2 * v̂ + λ) * κ1^2)
+    IV += max(0, 1 - 1.0 / η) * κstar^2 / (λ + v̂ * κstar^2)
+    
+    I1 = (ηp * v̂ * (-3 * den + aux) + 
+          4 * den * (-den + aux) + 
+          ηm * v̂ * (-2 * ηp * v̂ - 3 * den + aux)) / 
+         (4 * η * v̂^3 * κ1^2 * aux)
+    I2 = (ηp * v̂ + 
+          ηm * v̂ * (1 - 2 * aux2) + 
+          2 * den * (1 - aux2)) / 
+         (4 * η * v̂^2 * aux * κ1^2)
+    I3 = (2 * v̂ * ηp * ηm + 
+          (ηp + ηm) * den - 
+          2 * sqrt(ηp * ηm) * aux) / 
+         (4 * η * den^2 * κ1^2 * aux)
+    IQ = (q̂ + m̂^2) * I1 + (2 * q̂ + m̂^2) * κstar^2 * I2 + q̂ * κstar^2^2 * I3
+    IQ += max(0, 1 - 1.0 / η) * q̂ * κstar^2^2 / den^2
+    
+    IM = ((ηm + ηp + 2 * κstar^2) * v̂ + 2 * λ - 2 * aux) / 
+         (4 * η * v̂^2 * κ1^2)
+    
+    return IV, IQ, IM
+end
+
+function update_overlaps(problem::RidgeOverparametrized, hatoverlaps::Overlaps{true};)
+    IV, IQ, IM = integrate_for_qvm(problem, hatoverlaps)
+    m̂ = hatoverlaps.m[1]
+    v = IV
+    m = m̂ * IM * sqrt(problem.student_over_teacher_dim)
+    q0 = IQ
+    q̂1 = hatoverlaps.Q[1, 2]
+    q1 = (m̂^2 + q̂1) * IM^2 * problem.student_over_teacher_dim
+
+    mvec = SVector(m, m)
+    Qmat = SMatrix{2,2}(q0, q1, q1, q0)
+    Vmat = SMatrix{2,2}(v, 0, 0, v)
+
+    return Overlaps{false}(mvec, Qmat, Vmat)
+end
+
+function update_overlaps(problem::BayesOptimalRidgeOverparametrized, hatoverlaps::Overlaps{true};)
+    # raise an error 
+    error("BayesOptimalRidgeOverparametrized is not implemented yet")
+end
+
+# 
+
 function update_hatoverlaps(
     problem::Problem,
     algo1::Algorithm,
@@ -31,6 +94,9 @@ function update_hatoverlaps(
             Q_hat += α * proba * Δhatoverlaps.Q
             V_hat += α * proba * Δhatoverlaps.V
         end
+    end
+    if problem isa RidgeOverparametrized
+        m_hat *= sqrt(problem.student_over_teacher_dim)
     end
     return Overlaps{true}(m_hat, Q_hat, V_hat)
 end

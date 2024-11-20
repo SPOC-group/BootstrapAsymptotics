@@ -1,6 +1,3 @@
-using Pkg
-Pkg.activate(@__DIR__)
-
 using Base.Threads
 using BootstrapAsymptotics
 using Colors
@@ -8,7 +5,6 @@ using JSON
 using Plots
 using ProgressMeter
 using Statistics
-using StableRNGs
 
 #=
 using PGFPlotsX
@@ -21,20 +17,18 @@ rng = StableRNG(10)
 
 d = 200
 K = 10
-λ = 0.01
+λ = 1.0
 setting = :ridge
 
-α_vals = 10 .^ (-1:0.2:3.0)
-
+α_vals = 10 .^ (-1:0.2:2.0)
 algo_vals = [
     PairBootstrap(; p_max=5), #
     Subsampling(0.8), #
     Subsampling(0.99), #
     FullResampling(), #
     LabelResampling(),
-    ResidualBootstrap(), #
+    ResidualBootstrap() #
 ]
-
 colors = distinguishable_colors(
     length(algo_vals), [RGB(1, 1, 1), RGB(0, 0, 0)]; dropseed=true
 );
@@ -49,18 +43,16 @@ for algo in algo_vals
         problem = setting == :ridge ? Ridge(; λ, α) : Logistic(; λ, α)
         _, var_emp = bias_variance_empirical(rng, problem, algo; n=ceil(Int, α * d), K)
         vars_emp[algo][i] = var_emp
-        if algo != BayesOpt()
+        var_se = variance_state_evol4ution(
+            problem,
+            algo;
 
-            var_se = variance_state_evolution(
-                problem,
-                algo;
-                check_convergence=false,
-                show_progress=false,
-                rtol=1e-4,
-                max_iteration=100,
-            )
-            vars_se[algo][i] = var_se
-        end
+            check_convergence=false,
+            show_progress=false,
+            rtol=1e-4,
+            max_iteration=100,
+        )
+        vars_se[algo][i] = var_se
     end
 end
 
@@ -71,9 +63,8 @@ for (i, algo) in enumerate(algo_vals)
 end
 pl = plot!(pl; xlabel="α", ylabel="variance", xscale=:log, yscale=:log, legend=:bottom)
 
-# plot the BayesOpt separately
+## 
 
-# for logistic
 q_vals_BayesOpt = fill(0.0, length(α_vals))
 for i in eachindex(α_vals)
     α = α_vals[i]
@@ -81,15 +72,3 @@ for i in eachindex(α_vals)
     res = state_evolution_BayesOpt(problem; max_iteration=10)
     q_vals_BayesOpt[i] = res.q
 end
-plot(α_vals, 1.0 .- q_vals_BayesOpt; label="BayesOpt", xaxis=:log, yaxis=:log)
-
-# for ridge
-q_vals_BayesOpt = fill(0.0, length(α_vals))
-for i in eachindex(α_vals)
-    α = α_vals[i]
-    problem = Ridge(λ = 1.0, ρ = 1.0, α = α)
-    res = state_evolution_BayesOpt(problem; max_iteration=10)
-    q_vals_BayesOpt[i] = res.q
-end
-plot(α_vals, 1.0 .- q_vals_BayesOpt; label="BayesOpt", xaxis=:log, yaxis=:log)
-

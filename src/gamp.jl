@@ -42,10 +42,10 @@ function gamp(
     g = zeros(n)
 
     for _ in 1:max_iter
-        V = X_squared * vhat
-
+        V = X_squared * vhat # apply on each vhat in the case of multiple vhat (yields a matrix)
+        
         ω = X * xhat - V .* g
-        g, dg = channel(y, ω, V)
+        g, dg = channel(y, ω, V) # for multiple estimators, ω and V are a d × K matrix normally
 
         A = -X_squared' * dg
         b = A .* xhat + X' * g

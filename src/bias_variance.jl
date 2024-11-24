@@ -80,7 +80,7 @@ function overlaps_empirical(
         end
     end
 
-    return Overlaps{false}(m, Q, zeros(K, K))
+    return m, Q
 end
 
 """

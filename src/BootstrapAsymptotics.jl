@@ -52,5 +52,6 @@ export gamp
 export state_evolution, state_evolution_BayesOpt
 export bias_variance_true,
     bias_variance_empirical, variance_state_evolution, bias_state_evolution, overlaps_empirical
+export get_additional_noise_from_kappas
 
 end

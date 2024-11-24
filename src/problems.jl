@@ -68,6 +68,26 @@ $(TYPEDFIELDS)
     student_over_teacher_dim::Float64 = 1.0
 end
 
+function build_ridge_overparametrized(;
+    α::Float64,
+    true_Δ::Float64,
+    λ::Float64,
+    true_ρ::Float64,
+    κ1::Float64,
+    κstar::Float64,
+    student_over_teacher_dim::Float64 
+)::RidgeOverparametrized
+    Δ_add = true_ρ * get_additional_noise_from_kappas(κ1, κstar, student_over_teacher_dim)
+    return RidgeOverparametrized(
+        α     = α,
+        Δ     = true_Δ + Δ_add,
+        κ1    = κ1,
+        κstar = κstar,
+        ρ = true_ρ - Δ_add,
+        λ = λ
+    )
+end
+
 """
 $(TYPEDEF)
 

@@ -1,11 +1,28 @@
+function check_get_n_from_teacher_dim(problem::Problem; n::Union{Nothing, Integer} = nothing, teacher_dim::Union{Nothing, Integer} = nothing)::Integer
+    if n === nothing
+        if teacher_dim === nothing
+            error("Must set n or teacher_dim")
+        else 
+            if problem isa RidgeOverparametrized
+                return ceil(Int, teacher_dim * problem.student_over_teacher_dim * problem.α)
+            else
+                return ceil(Int, teacher_dim * problem.α)
+            end
+        end
+    else
+        return n
+    end
+end
+
 """
 $(SIGNATURES)
 
 Sample the data matrix `X` for a given `problem` with population size `n`.
 """
-function sample_data(rng::AbstractRNG, problem::Problem, n::Integer)
-    d = ceil(Int, n / problem.α)
-    X = randn(rng, n, d) ./ sqrt(d)
+function sample_data(rng::AbstractRNG, problem::Problem; teacher_dim::Integer, n::Union{Nothing, Integer} = nothing)
+    n = check_get_n_from_teacher_dim(problem; n = n, teacher_dim = teacher_dim)
+    
+    X = randn(rng, n, teacher_dim) ./ sqrt(teacher_dim)
     return X
 end
 
@@ -14,8 +31,15 @@ $(SIGNATURES)
 
 Sample the weights vector `w` for a given `problem` with population size `n` (from which the dimension is deduced).
 """
-function sample_weights(rng::AbstractRNG, problem::Problem, n::Integer)
-    d = ceil(Int, n / problem.α)
+function sample_weights(rng::AbstractRNG, problem::Problem, n::Union{Nothing, Integer} = nothing; d::Union{Nothing, Integer} = nothing)
+    if d === nothing
+        if n === nothing
+            error("Must set d or n")
+        else
+            d = ceil(Int, n / problem.α)
+        end
+    end
+
     w = randn(rng, d)
     return w
 end
@@ -44,9 +68,11 @@ $(SIGNATURES)
 
 Sample `X`, `w` and `y` all at once for a given `problem` with population size `n`.
 """
-function sample_all(rng::AbstractRNG, problem::Problem, n::Integer)
-    X = sample_data(rng, problem, n)
-    w = sample_weights(rng, problem, n)
+function sample_all(rng::AbstractRNG, problem::Problem; n::Union{Nothing, Integer} = nothing, teacher_dim::Integer)
+    n = check_get_n_from_teacher_dim(problem; n=n, teacher_dim=teacher_dim)
+
+    X = sample_data(rng, problem; n = n, teacher_dim = teacher_dim)
+    w = sample_weights(rng, problem; d = teacher_dim)
     y = sample_labels(rng, problem, X, w)
     return (; X, w, y)
 end
@@ -65,11 +91,4 @@ function sample_random_projection(rng::AbstractRNG, problem::RidgeOverparametriz
     student_dim = ceil(Int, teacher_dim * problem.student_over_teacher_dim)
     F = randn(rng, student_dim, teacher_dim)
     return F
-end
-
-function sample_all_fixed_teacher_dim(rng::AbstractRNG, problem::RidgeOverparametrized, teacher_dim::Integer)
-    X = sample_data_fixed_teacher_dim(rng, problem, teacher_dim)
-    w = randn(rng, teacher_dim)
-    y = sample_labels(rng, problem, X, w)
-    return (; X, w, y)
 end

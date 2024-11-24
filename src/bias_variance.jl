@@ -35,10 +35,12 @@ function bias_variance_empirical(
     return bias2, variance
 end
 
+# computation of the overlaps instead of the bias variance
+
 function overlaps_empirical(
-    rng::AbstractRNG, problem::RidgeOverparametrized, ::ERM; teacher_dim::Integer, K::Integer
+    rng::AbstractRNG, problem::RidgeOverparametrized, algo::Algorithm; teacher_dim::Integer, K::Integer
 )
-    (; X, y, w) = sample_all_fixed_teacher_dim(rng, problem, teacher_dim)
+    (; X, y, w) = sample_all(rng, problem; teacher_dim = teacher_dim)
     
     w_samples = []
     F_samples = []
@@ -48,7 +50,22 @@ function overlaps_empirical(
         F = sample_random_projection(rng, problem, teacher_dim)
         push!(F_samples, F)
         V = (problem.κ1 * X * F' + problem.κstar * randn(rng, size(X, 1), student_dim)) / sqrt(student_dim)
-        what = fit(Ridge(ρ=problem.ρ, α=problem.α, λ=problem.λ, Δ=problem.Δ), ERM(), V, y)
+        if algo isa FullResampling
+            what = fit(rng,
+                    Ridge(ρ=problem.ρ, α=problem.α, λ=problem.λ, Δ=problem.Δ),
+                    algo,
+                    V,
+                    y,
+                    w,
+                    F)
+        else 
+            what = fit(rng,
+                    Ridge(ρ=problem.ρ, α=problem.α, λ=problem.λ, Δ=problem.Δ),
+                    algo,
+                    V,
+                    y,
+                    w)
+        end
         push!(w_samples, what)
     end
 

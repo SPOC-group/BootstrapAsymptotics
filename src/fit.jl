@@ -7,7 +7,7 @@ StatsAPI.fit
 
 ## ERM
 
-function StatsAPI.fit(problem::Logistic, ::ERM, X::AbstractMatrix, y::AbstractVector)
+function StatsAPI.fit(problem::Logistic, ::Union{ERM, NoResampling}, X::AbstractMatrix, y::AbstractVector)
     (; λ) = problem
     model = MLJLinearModels.LogisticRegression(
         λ; fit_intercept=false, scale_penalty_with_samples=false
@@ -81,9 +81,32 @@ function StatsAPI.fit(
     w_star::AbstractVector,
 )
     n = length(y)
-    new_X = sample_data(rng, problem, n)
+    teacher_dim = ceil(Int, problem.α * n)
+    new_X = sample_data(rng, problem; n = n, teacher_dim = teacher_dim)
     new_y = sample_labels(rng, problem, new_X, w_star)
     return fit(problem, ERM(), new_X, new_y)
+end
+
+"""
+
+for full resampling, we need to sample new labels and new data and for this 
+we need to provide w_star
+"""
+function StatsAPI.fit(
+    rng::AbstractRNG,
+    problem::Union{RidgeOverparametrized, Ridge},
+    ::FullResampling,
+    X::AbstractMatrix,
+    y::AbstractVector,
+    w_star::AbstractVector,
+    F::AbstractMatrix
+)
+    n = length(y)
+    teacher_dim = ceil(Int, problem.α * n)
+    new_X = sample_data(rng, problem; n = n, teacher_dim = teacher_dim)
+    new_y = sample_labels(rng, problem, new_X, w_star)
+    new_V = (problem.κ1 * new_X * F' + problem.κstar * randn(rng, size(new_X, 1), size(F, 2))) / sqrt(size(F, 2))
+    return fit(problem, ERM(), new_V, new_y)
 end
 
 function StatsAPI.fit(

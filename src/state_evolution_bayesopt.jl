@@ -99,3 +99,9 @@ function state_evolution_BayesOpt(problem::Ridge; rtol=1e-4, max_iteration=100)
     q_hat = res.hatoverlaps.Q[1, 1]
     return (; q, q_hat)
 end
+
+### for overparametrization
+function update_overlaps(problem::BayesOptimalRidgeOverparametrized, hatoverlaps::Overlaps{true};)
+    # raise an error 
+    error("BayesOptimalRidgeOverparametrized is not implemented yet")
+end

@@ -38,6 +38,7 @@ include("state_evolution.jl")
 include("state_evolution_ridge.jl")
 include("state_evolution_logistic.jl")
 include("state_evolution_bayesopt.jl")
+include("state_evolution_kernel.jl")
 
 include("bias_variance.jl")
 include("gamp.jl")

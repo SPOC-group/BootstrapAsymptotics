@@ -64,11 +64,6 @@ function update_overlaps(problem::RidgeOverparametrized, hatoverlaps::Overlaps{t
     return Overlaps{false}(mvec, Qmat, Vmat)
 end
 
-function update_overlaps(problem::BayesOptimalRidgeOverparametrized, hatoverlaps::Overlaps{true};)
-    # raise an error 
-    error("BayesOptimalRidgeOverparametrized is not implemented yet")
-end
-
 # 
 
 function update_hatoverlaps(

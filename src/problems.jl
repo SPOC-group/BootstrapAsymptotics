@@ -49,25 +49,30 @@ $(TYPEDEF)
 Ridge regression problem with a random feature model : additional fields are κ1 and κ* to model the kernel.
 ρ is still the teacher norm and Δ the initial teacher noise variance. (ρ + Δ is left unchanged in the channel)
 
+NOTE : In the code, we assume that the two learners have different random features from the same distribution
+
+TODO : Allow to use the same random feature and combine with resampling (will be useful for variance analysis)
+
 $(TYPEDFIELDS)
 """
 @kwdef struct RidgeOverparametrized <: Problem
-    "ratio of population over dimension `n/d`"
-    α::Float64 = 1.0
+    "ratio of population over student dimension `n/p`"
+    α::Float64
     "Gaussian noise variance"
-    Δ::Float64 = 1.0
+    Δ::Float64
     "regularization strength"
-    λ::Float64 = 1.0
+    λ::Float64
     "teacher weight"
-    ρ::Float64 = 1.0
+    ρ::Float64
     "correlation between sutdent and teacher features"
-    κ1::Float64 = 1.0
+    κ1::Float64
     "white noise std. due to random features"
-    κstar::Float64 = 0.0
+    κstar::Float64
     "Student of teacher dimension"
-    student_over_teacher_dim::Float64 = 1.0
+    student_over_teacher_dim::Float64 
 end
 
+# function to take into account the additional noise coming from the random features
 function build_ridge_overparametrized(;
     α::Float64,
     true_Δ::Float64,
@@ -84,7 +89,8 @@ function build_ridge_overparametrized(;
         κ1    = κ1,
         κstar = κstar,
         ρ = true_ρ - Δ_add,
-        λ = λ
+        λ = λ,
+        student_over_teacher_dim = student_over_teacher_dim
     )
 end
 
@@ -95,18 +101,18 @@ Bayes optimal setting for overparametrized random featruzres : λ is not used in
 $(TYPEDFIELDS)
 """
 @kwdef struct BayesOptimalRidgeOverparametrized <: Problem
-    "ratio of population over dimension `n/d`"
-    α::Float64 = 1.0
+    "ratio of population over student dimension `n/p`"
+    α::Float64
+    "correlation between sutdent and teacher features"
+    κ1::Float64 
+    "white noise std. due to random features"
+    κstar::Float64
     "Gaussian noise variance"
     Δ::Float64 = 1.0
     # "regularization strength"
     # λ::Float64 = 1.0
     "teacher weight"
     ρ::Float64 = 1.0
-    "correlation between sutdent and teacher features"
-    κ1::Float64 = 1.0
-    "white noise std. due to random features"
-    κstar::Float64 = 0.0
     "Student of teacher dimension"
     student_over_teacher_dim::Float64 = 1.0
 end
@@ -114,4 +120,22 @@ end
 function Base.show(io::IO, problem::Ridge)
     (; α, Δ, λ, ρ) = problem
     return print(io, "Ridge(α=$(round(α, sigdigits=3)), λ=$λ, ρ=$ρ, Δ=$Δ)")
+end
+
+
+@kwdef struct KernelRidgeOverparametrized <: Problem
+    "correlation between sutdent and teacher features"
+    κ1::Float64
+    "white noise std. due to random features"
+    κstar::Float64 
+    "ratio of population over teacher dimension `n/d`"
+    δ::Float64
+    "reg."
+    λ::Float64
+    "Gaussian noise variance"
+    Δ::Float64 = 1.0
+    # "regularization strength"
+    # λ::Float64 = 1.0
+    "teacher weight"
+    ρ::Float64 = 1.0
 end

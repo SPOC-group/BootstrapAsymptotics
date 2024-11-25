@@ -1,5 +1,5 @@
 function update_hatoverlaps_summand(
-    problem::Union{Ridge, RidgeOverparametrized},
+    problem::Union{Ridge, RidgeOverparametrized, KernelRidgeOverparametrized},
     algo1::Algorithm,
     algo2::Algorithm,
     overlaps::Overlaps{false},

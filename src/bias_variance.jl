@@ -37,6 +37,12 @@ end
 
 # computation of the overlaps instead of the bias variance
 
+function bias_variance_empirical(
+    rng::AbstractRNG, problem::RidgeOverparametrized, algo::Algorithm; teacher_dim::Integer, K::Integer
+)
+    error("To do later")
+end
+
 function overlaps_empirical(
     rng::AbstractRNG, problem::RidgeOverparametrized, algo::Algorithm; teacher_dim::Integer, K::Integer
 )

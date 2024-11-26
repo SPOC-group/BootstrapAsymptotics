@@ -42,6 +42,8 @@ include("state_evolution_kernel.jl")
 
 include("bias_variance.jl")
 include("gamp.jl")
+include("scaling.jl")
+
 
 export Overlaps
 export Ridge, Logistic

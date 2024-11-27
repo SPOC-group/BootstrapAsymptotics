@@ -11,15 +11,17 @@ and the rescaled variance is like (q₀ - q₁) / (scaling). So that the functio
     
     where q₀ and q₁ are the two diagonal elements of the Q matrix
 """
-function get_scaling_gaussian_nll(overlaps::BootstrapAsymptotics.Overlaps{false}, ρ::Float64)::Float64
+function get_scaling_gaussian_nll(overlaps::BootstrapAsymptotics.Overlaps{false}, problem::Problem)::Float64
+    (; ρ, Δ) = problem
+    
     # we have a closed form expression
     m = overlaps.m[1]
     q₁= overlaps.Q[1, 2]
     q₀ = overlaps.Q[1, 1]
 
     # when averaged, the MSE is ρ - 2 * m + q₁ and not ρ - 2 * m + q₀
-    Δ̂ = ρ - 2 * m + q₁
-    return (q₀ - q₁) / Δ
+    Δ̂ = ρ - 2 * m + q₁ + Δ # here we can provide the original ρ and Δ
+    return (q₀ - q₁) / Δ̂
 end
 
 """

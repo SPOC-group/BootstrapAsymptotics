@@ -102,6 +102,17 @@ end
 
 ### for overparametrization
 function update_overlaps(problem::BayesOptimalRidgeOverparametrized, hatoverlaps::Overlaps{true};)
-    # raise an error 
-    error("BayesOptimalRidgeOverparametrized is not implemented yet")
+    κκ1 = problem.κ1^2
+    κκstar = problem.κstar^2
+
+    q̂0 = hatoverlaps.Q[1, 1]
+    q̂1 = hatoverlaps.Q[2, 2]
+    m̂  = hatoverlaps.m[1]
+    v̂  = hatoverlaps.V[1, 1]
+
+    function to_integrate(z::Real)
+        return (κκ1 * z * problem.teacher_norm / (κκ1 * z + κκstar)).^2 / (1.0 + q̂0 * (κκ1 * z * problem.teacher_norm / (κκ1 * z + κκstar)))
+    end 
+
+    # use the formula from the paper to compute q₁ (variance w.r.t random features)
 end

@@ -37,6 +37,8 @@ $(TYPEDFIELDS)
     α::Float64 = 1.0
     "Gaussian noise variance"
     Δ::Float64 = 1.0
+    "stzudent noise variance in the ridge loss"
+    Δ̂::Float64 = 1.0
     "regularization strength"
     λ::Float64 = 1.0
     "teacher weight"
@@ -60,6 +62,8 @@ $(TYPEDFIELDS)
     α::Float64
     "Gaussian noise variance"
     Δ::Float64
+    "stzudent noise variance in the ridge loss"
+    Δ̂::Float64 = 1.0
     "regularization strength"
     λ::Float64
     "teacher weight"
@@ -70,28 +74,6 @@ $(TYPEDFIELDS)
     κstar::Float64
     "Student of teacher dimension"
     student_over_teacher_dim::Float64 
-end
-
-# function to take into account the additional noise coming from the random features
-function build_ridge_overparametrized(;
-    α::Float64,
-    true_Δ::Float64,
-    λ::Float64,
-    true_ρ::Float64,
-    κ1::Float64,
-    κstar::Float64,
-    student_over_teacher_dim::Float64 
-)::RidgeOverparametrized
-    Δ_add = true_ρ * get_additional_noise_from_kappas(κ1, κstar, student_over_teacher_dim)
-    return RidgeOverparametrized(
-        α     = α,
-        Δ     = true_Δ + Δ_add,
-        κ1    = κ1,
-        κstar = κstar,
-        ρ = true_ρ - Δ_add,
-        λ = λ,
-        student_over_teacher_dim = student_over_teacher_dim
-    )
 end
 
 """
@@ -108,13 +90,13 @@ $(TYPEDFIELDS)
     "white noise std. due to random features"
     κstar::Float64
     "Gaussian noise variance"
-    Δ::Float64 = 1.0
-    # "regularization strength"
-    # λ::Float64 = 1.0
+    Δ::Float64
+    Δ̂::Float64
     "teacher weight"
-    ρ::Float64 = 1.0
+    ρ::Float64 # after the projection 
+    true_ρ::Float64 # before the projection 
     "Student of teacher dimension"
-    student_over_teacher_dim::Float64 = 1.0
+    student_over_teacher_dim::Float64
 end
 
 function Base.show(io::IO, problem::Ridge)
@@ -133,9 +115,51 @@ end
     "reg."
     λ::Float64
     "Gaussian noise variance"
-    Δ::Float64 = 1.0
-    # "regularization strength"
-    # λ::Float64 = 1.0
+    Δ::Float64
     "teacher weight"
-    ρ::Float64 = 1.0
+    ρ::Float64
+    "Gaussian noise variance"
+    Δ̂::Float64 = 1.0
+end
+
+# ==== 
+function build_ridge_overparametrized(;
+    α::Float64,
+    true_Δ::Float64,
+    λ::Union{Nothing, Float64}, # useless for Bayes optimal
+    true_ρ::Float64,
+    κ1::Float64,
+    κstar::Float64,
+    student_over_teacher_dim::Float64,
+    Δ̂::Union{Nothing, Float64} = nothing,
+    base_optimal::Bool = false
+)::Union{RidgeOverparametrized, BayesOptimalRidgeOverparametrized}
+    Δ_add = true_ρ * get_additional_noise_from_kappas(κ1, κstar, student_over_teacher_dim)
+    
+    if !base_optimal
+        if λ === nothing || Δ̂ === nothing
+            error("Must specify λ and Δ̂ for ERM estimator")
+        end
+        return RidgeOverparametrized(
+            α     = α,
+            Δ     = true_Δ + Δ_add,
+            Δ̂     = Δ̂,
+            κ1    = κ1,
+            κstar = κstar,
+            ρ     = true_ρ - Δ_add,
+            λ     = λ,
+            student_over_teacher_dim = student_over_teacher_dim
+        )
+    else
+        return BayesOptimalRidgeOverparametrized(
+            α     = α,
+            Δ     = true_Δ + Δ_add,
+            Δ̂     = true_Δ + Δ_add,
+            κ1    = κ1,
+            κstar = κstar,
+            ρ = true_ρ - Δ_add,
+            true_ρ = true_ρ,
+            student_over_teacher_dim = student_over_teacher_dim
+        )
+    end
 end

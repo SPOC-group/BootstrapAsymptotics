@@ -26,10 +26,11 @@ end
 
 """
 this function returns the scaling of the variance such that the MSE of the ensemble is equal 
-to the variance
+to the variance.
+After computation, we see that it yields the scame scaling as the one that maximizes the gaussian NLL
 """
 function get_scaling_matched_variance_error()::Float64
-    error("not done yet")
+    return get_scaling_gaussian_nll(overlaps, problem)
 end
 
 # 

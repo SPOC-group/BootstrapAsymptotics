@@ -2,106 +2,37 @@
 Functions for the Bayes-optimal estimator
 =#
 
-function update_overlaps_BayesOpt(problem::Problem, q_hat::Real)
-    (; λ, ρ) = problem
-    R = 1.0 / (λ + q_hat)
-    q = ρ .* R * q_hat # m = q = ρ - v
-    return q
-end
-
-function Z₀_and_∂μZ₀(y::Integer, μ::Real, v::Real; rtol::Real)
-    # need the logistic model for the BayesOpt estimator
-    function Z₀_and_∂μZ₀_integrand(u::Real)
-        z = u * sqrt(v) + μ
-        σ = logistic(y * z)
-        σ_der = σ * (1 - σ)
-        res = SVector(σ, y * σ_der) * normpdf(u)
-        return res
-    end
-
-    bound = 10.0
-    double_integral, err = quadgk(Z₀_and_∂μZ₀_integrand, -bound, bound; rtol)
-    Z₀ = double_integral[1]
-    ∂μZ₀ = double_integral[2]
-    return Z₀, ∂μZ₀
-end
-
-function gₒᵤₜ_BayesOpt(y::Integer, ω::Real, V::Real; rtol::Real)
-    Z₀, ∂μZ₀ = Z₀_and_∂μZ₀(y, ω, V; rtol=rtol)
-
-    gₒᵤₜ = ∂μZ₀ / Z₀
-    return gₒᵤₜₜ
-end
-
-function update_hatoverlaps_BayesOpt(problem::Logistic, q::Real; rtol::Real)
-    (; α, ρ) = problem
-
-    v_star = ρ - q
-
-    ΔQ_hat = 0.0
-
-    for y in (-1, 1)
-        function integrand(u::Real)
-            ω = sqrt(q) * u
-            μ = ω
-
-            Z₀, ∂Z₀ = Z₀_and_∂μZ₀(y, μ, v_star; rtol)
-            gₒᵤₜ = (∂Z₀ / Z₀)
-
-            return Z₀ * gₒᵤₜ^2.0 * prod(normpdf, u)
-        end
-
-        bound = 10.0
-        integral, err = quadgk(integrand, -bound, +bound; rtol)
-        ΔQ_hat += α * integral
-    end
-
-    return ΔQ_hat
-end
-
 """
-$(SIGNATURES)
-
-Special case of state evolution for the Bayes optimal estimator.
+Note : it makes more sense to put the Bayes opt in the problem because 1) we don't have the λ to care about 
+and 2) we can combine with resampling methods
 """
-function state_evolution_BayesOpt(problem::Logistic; rtol=1e-4, max_iteration=100)
-    (; λ, ρ) = problem
-    @assert λ == (1.0 / ρ)
-    q::Real = 1.0
-    q_hat::Real = 1.0
-
-    converged, nb_iterations = false, max_iteration
-
-    for iter in 1:max_iteration
-        new_q = update_overlaps_BayesOpt(problem, q_hat)
-        new_q_hat = update_hatoverlaps_BayesOpt(problem, q; rtol)
-        if (close_enough(new_q, q; rtol) && close_enough(new_q_hat, q_hat; rtol))
-            converged, nb_iterations = true, iter
-            break
-        else
-            q, q_hat = new_q, new_q_hat
-        end
-    end
-
-    stats = (; converged, nb_iterations)
-    return (; q, q_hat, stats)
-end
-
-function state_evolution_BayesOpt(problem::Ridge; rtol=1e-4, max_iteration=100)
-    (; λ, ρ) = problem
-    @assert λ == 1.0 / ρ
-    # here we can afford to run the state evolution for 2d problem and 
-    # only return the diagonal term
-    res = state_evolution(
-        problem, FullResampling(), FullResampling(); rtol=rtol, max_iteration=max_iteration
-    )
-    q = res.overlaps.Q[1, 1]
-    q_hat = res.hatoverlaps.Q[1, 1]
-    return (; q, q_hat)
-end
-
 ### for overparametrization
-function update_overlaps(problem::BayesOptimalRidgeOverparametrized, hatoverlaps::Overlaps{true};)
+"""
+TODO : Put this somewhere else
+"""
+function marcenko_pastur_integral(f::Function, γ::Float64)::Float64
+    # Define λ_minus and λ_plus
+    λ_minus = (1.0 - sqrt(γ))^2
+    λ_plus = (1.0 + sqrt(γ))^2
+    
+    # Define the function to integrate
+    to_integrate(x) = f(x) * sqrt((λ_plus - x) * (x - λ_minus)) / (2.0 * π * γ * x)
+    
+    # Perform the integration over the range (λ_minus, λ_plus)
+    integral, _ = quadgk(to_integrate, λ_minus, λ_plus)
+    
+    # Adjust the integral for γ > 1.0
+    if γ > 1.0
+        return integral + (1.0 - 1.0 / γ) * f(0.0)
+    end
+
+    return integral
+end
+
+"""
+Update of the overlaps when we have 2 BO on two i.i.d but different random features
+"""
+function update_overlaps(problem::BayesOptimalRidgeOverparametrized, hatoverlaps::Overlaps{true};)::Overlaps{false}
     κκ1 = problem.κ1^2
     κκstar = problem.κstar^2
 
@@ -111,8 +42,17 @@ function update_overlaps(problem::BayesOptimalRidgeOverparametrized, hatoverlaps
     v̂  = hatoverlaps.V[1, 1]
 
     function to_integrate(z::Real)
-        return (κκ1 * z * problem.teacher_norm / (κκ1 * z + κκstar)).^2 / (1.0 + q̂0 * (κκ1 * z * problem.teacher_norm / (κκ1 * z + κκstar)))
+        return (κκ1 * z * problem.true_ρ / (κκ1 * z + κκstar)).^2 / (1.0 + q̂0 * (κκ1 * z * problem.true_ρ / (κκ1 * z + κκstar)))
     end 
 
-    # use the formula from the paper to compute q₁ (variance w.r.t random features)
+    q₀ = q̂0 * problem.student_over_teacher_dim * marcenko_pastur_integral(to_integrate, problem.student_over_teacher_dim)
+    # my intuition is that the formula for q₁ as a function of m is unchanged
+    q₁ = (1.0 + q̂1 / m̂^2) * q₀^2 # m = q₀
+    v = problem.ρ - q₀
+
+    mvec = SVector(q₀, q₀)
+    Qmat = SMatrix{2,2}(q₀, q₁, q₁, q₀)
+    Vmat = SMatrix{2,2}(v, 0, 0, v)
+
+    return Overlaps{false}(mvec, Qmat, Vmat)
 end

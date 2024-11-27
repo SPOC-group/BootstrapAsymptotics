@@ -92,6 +92,10 @@ function update_hatoverlaps(
     end
     if problem isa RidgeOverparametrized
         m_hat *= sqrt(problem.student_over_teacher_dim)
+    elseif problem isa BayesOptimalRidgeOverparametrized
+        m_hat *= problem.student_over_teacher_dim
+        Q_hat *= problem.student_over_teacher_dim
+        V_hat *= problem.student_over_teacher_dim
     end
     return Overlaps{true}(m_hat, Q_hat, V_hat)
 end
@@ -115,14 +119,20 @@ function state_evolution(
     max_iteration=100,
     show_progress::Bool=false,
 )
+    if problem isa BayesOptimalRidgeOverparametrized 
+        if !(algo1 isa NoResampling && algo2 isa NoResampling)
+            error("Not implemented yet")
+        end
+    end
+
     overlaps, hatoverlaps = Overlaps{false}(), Overlaps{true}()
     converged, nb_iterations = false, max_iteration
     p = Progress(max_iteration; desc="State evolution", enabled=show_progress)
 
     for iter in 1:max_iteration
         next!(p)
-        new_overlaps = update_overlaps(problem, hatoverlaps)
-        new_hatoverlaps = update_hatoverlaps(problem, algo1, algo2, new_overlaps; rtol)
+        new_hatoverlaps = update_hatoverlaps(problem, algo1, algo2, overlaps; rtol)
+        new_overlaps = update_overlaps(problem, new_hatoverlaps)
         if (
             close_enough(new_overlaps, overlaps; rtol) &&
             close_enough(new_hatoverlaps, hatoverlaps; rtol)
@@ -136,32 +146,4 @@ function state_evolution(
 
     stats = (; converged, nb_iterations)
     return (; overlaps, hatoverlaps, stats)
-end
-
-# LC : I add a function state_evolution for the Bayes-optimal estimator, just for convenience. I cant compute the off diagonal overlaps
-# so I replace them by nothing, it's ok because for now we don't need them 
-
-function state_evolution(
-    problem::Problem,
-    ::BayesOpt,
-    ::BayesOpt;
-    rtol=1e-4,
-    max_iteration=100,
-    show_progress::Bool=false,
-)
-    res = state_evolution_BayesOpt(problem; rtol, max_iteration)
-    (; ρ) = problem
-    overlaps = Overlaps{false}(
-        SVector(res.q, res.q),
-        SMatrix{2,2}(res.q, nothing, nothing, res.q),
-        SMatrix{2,2}(ρ - res.q, nothing, nothing, ρ - res.q),
-    )
-
-    hatoverlaps = Overlaps{true}(
-        SVector(res.q_hat, res.q_hat),
-        SMatrix{2,2}(res.q_hat, nothing, nothing, res.q_hat),
-        SMatrix{2,2}(res.q_hat, nothing, nothing, res.q_hat),
-    )
-
-    return (; overlaps, hatoverlaps)
 end

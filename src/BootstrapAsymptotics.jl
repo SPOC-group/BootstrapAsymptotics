@@ -16,6 +16,7 @@ using LinearAlgebra: Diagonal, Symmetric, I, dot, norm
 using LogExpFunctions: log1pexp
 using MLJLinearModels: MLJLinearModels
 using NLSolvers: NLSolvers
+using Optim
 using ProgressMeter: Progress, next!
 using QuadGK: quadgk
 using Random: AbstractRNG
@@ -42,6 +43,8 @@ include("state_evolution_kernel.jl")
 
 include("bias_variance.jl")
 include("gamp.jl")
+
+include("regularization.jl")
 include("scaling.jl")
 
 

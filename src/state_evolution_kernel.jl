@@ -2,11 +2,6 @@
 State evolution in the Kernel regime
 """
 
-function update_overlaps(problem::KernelRidgeOverparametrized)
-
-end
-
-
 function update_hatoverlaps(
     problem::KernelRidgeOverparametrized,
     algo1::Algorithm,
@@ -72,6 +67,7 @@ function state_evolution(
     max_iteration=100,
     show_progress::Bool=false,
 )
+    # we redefine a new fumction because : 
     # we'll ignore the parameters α and student_over_teacher_dim from problem because of the kernel limit
 
     overlaps, hatoverlaps = Overlaps{false}(), Overlaps{true}()

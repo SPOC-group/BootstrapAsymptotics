@@ -1,5 +1,5 @@
 function update_hatoverlaps_summand(
-    problem::Union{Ridge, RidgeOverparametrized, KernelRidgeOverparametrized},
+    problem::Union{Ridge, RidgeOverparametrized, KernelRidgeOverparametrized, BayesOptimalRidgeOverparametrized},
     algo1::Algorithm,
     algo2::Algorithm,
     overlaps::Overlaps{false},
@@ -13,7 +13,7 @@ function update_hatoverlaps_summand(
     v_star = ρ - dot(m, Q⁻¹ * m)
     B = vcat(m', m') * Q⁻¹ - I
     P = Diagonal(p)
-    G = inv(I + P * V) * P
+    G = inv(problem.Δ̂ * I + P * V) * P
 
     Δm_hat = G * SVector(1, 1)
     if algo1 isa LabelResampling && algo2 isa LabelResampling

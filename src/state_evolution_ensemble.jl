@@ -87,7 +87,7 @@ function update_hatoverlaps_summand(
         μ = dot(m, Q⁻¹ * ω)
 
         Z₀, ∂μZ₀ = Z₀_and_∂μZ₀(y, μ, v_star, problem)
-        gₒᵤₜ, ∂ωgₒᵤₜ = gₒᵤₜ_and_∂ωgₒᵤₜ(y, ω, V, p; rtol)
+        gₒᵤₜ, ∂ωgₒᵤₜ = gₒᵤₜ_and_∂ωgₒᵤₜ_gaussian_ensemble(y, ω, V, V⁻¹; rtol)
 
         Im = ∂μZ₀ * gₒᵤₜ
         IQ = Z₀ * gₒᵤₜ * gₒᵤₜ'

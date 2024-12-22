@@ -47,7 +47,9 @@ function update_overlaps(problem::BayesOptimalRidgeOverparametrized, hatoverlaps
 
     q₀ = q̂0 * problem.student_over_teacher_dim * marcenko_pastur_integral(to_integrate, problem.student_over_teacher_dim)
     # my intuition is that the formula for q₁ as a function of m is unchanged
-    q₁ = (1.0 + q̂1 / m̂^2) * q₀^2 # m = q₀
+    # this is only valid when you have two different i.i.d random features 
+
+    q₁ = (1.0 + q̂1 / m̂^2) * q₀^2 # m = q₀ 
     v = problem.ρ - q₀
 
     mvec = SVector(q₀, q₀)

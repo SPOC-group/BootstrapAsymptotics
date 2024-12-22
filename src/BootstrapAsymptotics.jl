@@ -11,6 +11,7 @@ module BootstrapAsymptotics
 
 using Base.Iterators: product
 using DocStringExtensions
+using ForwardDiff
 using HCubature: hcubature
 using LinearAlgebra: Diagonal, Symmetric, I, dot, norm
 using LogExpFunctions: log1pexp

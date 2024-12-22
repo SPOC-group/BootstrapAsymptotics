@@ -1,4 +1,8 @@
 function gₒᵤₜ_and_∂ωgₒᵤₜ(y::Integer, ω::Real, V::Real, p::Real; rtol::Real)
+    """
+    NOTE : for overparametrized logistic we still use  the same loss (logistic loss)
+    so we don't need to change this part of the code
+    """
     objective(z::Real) = abs2(z - ω) / (2V) + p * logistic_loss(y, z)
     gradient(_, z::Real) = (z - ω) / V + p * logistic_loss_der(y, z)
     hessian(_, z::Real) = inv(V) + p * logistic_loss_der2(y, z)
@@ -35,21 +39,23 @@ function gₒᵤₜ_and_∂ωgₒᵤₜ(
 end
 
 function Z₀_and_∂μZ₀(
-    y::AbstractVector{<:Integer}, μ::Real, v::Real, same_labels::Bool; rtol::Real
+    y::AbstractVector{<:Integer}, μ::Real, v::Real, same_labels::Bool; rtol::Real, logistic_Δ::Real = 0.0
 )
     function Z₀_and_∂μZ₀_integrand_same_labels(u::Real)
         z = u * sqrt(v) + μ
-        σ = logistic(y[1] * z)
+        σ = noisy_logistic(y[1] * z; logistic_Δ=logistic_Δ)
         σ_der = σ * (1 - σ)
         res = SVector(σ, y[1] * σ_der) * normpdf(u)
         return res
     end
+
     function Z₀_and_∂μZ₀_integrand_different_labels(u::Real)
         z = u * sqrt(v) + μ
-        σ1 = logistic(y[1] * z)
-        σ2 = logistic(y[2] * z)
-        σ1_der = σ1 * (1 - σ1)
-        σ2_der = σ2 * (1 - σ2)
+        σ1 = σ = noisy_logistic(y[1] * z; logistic_Δ=logistic_Δ)
+        σ2 = σ = noisy_logistic(y[2] * z; logistic_Δ=logistic_Δ)
+        σ1_der = noisy_logistic_der(y[1] * z; logistic_Δ=logistic_Δ)
+        σ2_der = noisy_logistic_der(y[2] * z; logistic_Δ=logistic_Δ)
+
         res = SVector(σ1 * σ2, y[1] * σ1_der * σ2 + y[2] * σ2_der * σ1) * normpdf(u)
         return res
     end
@@ -69,8 +75,11 @@ function Z₀_and_∂μZ₀(
     return Z₀, ∂μZ₀
 end
 
+### for overparametrized logistic
+
+
 function update_hatoverlaps_summand(
-    problem::Logistic,
+    problem::Union{Logistic, LogisticOverparametrized},
     algo1::Algorithm,
     algo2::Algorithm,
     overlaps::Overlaps{false},
@@ -96,7 +105,11 @@ function update_hatoverlaps_summand(
             ω = Q_sqrt * u
             μ = dot(m, Q⁻¹ * ω)
 
-            Z₀, ∂μZ₀ = Z₀_and_∂μZ₀(y, μ, v_star, same_labels(algo1, algo2); rtol)
+            if problem isa Logistic
+                Z₀, ∂μZ₀ = Z₀_and_∂μZ₀(y, μ, v_star, same_labels(algo1, algo2); rtol=rtol, logistic_Δ=0.0)
+            else
+                Z₀, ∂μZ₀ = Z₀_and_∂μZ₀(y, μ, v_star, same_labels(algo1, algo2); rtol=rtol, logistic_Δ=problem.Δ_add)
+            end
             gₒᵤₜ, ∂ωgₒᵤₜ = gₒᵤₜ_and_∂ωgₒᵤₜ(y, ω, V, p; rtol)
 
             Im = ∂μZ₀ * gₒᵤₜ

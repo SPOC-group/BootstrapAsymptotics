@@ -1,8 +1,8 @@
 # This file is machine-generated - editing it directly is not advised
 
-julia_version = "1.10.4"
+julia_version = "1.10.1"
 manifest_format = "2.0"
-project_hash = "752288e05f0d4be6f23f93a7148d418f232d0adb"
+project_hash = "ed87ee35179ba8605ea38c232d80f96793d72d61"
 
 [[deps.Adapt]]
 deps = ["LinearAlgebra", "Requires"]
@@ -57,7 +57,7 @@ uuid = "d1d4a3ce-64b1-5f1a-9ba4-7e7e69966f35"
 version = "0.1.8"
 
 [[deps.BootstrapAsymptotics]]
-deps = ["DocStringExtensions", "HCubature", "LinearAlgebra", "LogExpFunctions", "MLJLinearModels", "NLSolvers", "Optim", "ProgressMeter", "QuadGK", "Random", "SpecialFunctions", "StableRNGs", "StaticArrays", "Statistics", "StatsAPI", "StatsBase", "StatsFuns"]
+deps = ["DocStringExtensions", "ForwardDiff", "HCubature", "LinearAlgebra", "LogExpFunctions", "MLJLinearModels", "NLSolvers", "Optim", "ProgressMeter", "QuadGK", "Random", "SpecialFunctions", "StableRNGs", "StaticArrays", "Statistics", "StatsAPI", "StatsBase", "StatsFuns"]
 path = ".."
 uuid = "d307ed22-b47c-43c3-8c4d-624c6f851e79"
 version = "0.1.0"
@@ -138,7 +138,7 @@ weakdeps = ["Dates", "LinearAlgebra"]
 [[deps.CompilerSupportLibraries_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "e66e0078-7015-5450-92f7-15fbd957f2ae"
-version = "1.1.1+0"
+version = "1.1.0+0"
 
 [[deps.ConcurrentUtilities]]
 deps = ["Serialization", "Sockets"]
@@ -315,9 +315,9 @@ version = "0.4.2"
 
 [[deps.ForwardDiff]]
 deps = ["CommonSubexpressions", "DiffResults", "DiffRules", "LinearAlgebra", "LogExpFunctions", "NaNMath", "Preferences", "Printf", "Random", "SpecialFunctions"]
-git-tree-sha1 = "cf0fe81336da9fb90944683b8c41984b08793dad"
+git-tree-sha1 = "a2df1b776752e3f344e5116c06d75a10436ab853"
 uuid = "f6369f11-7733-5829-9624-2563aa707210"
-version = "0.10.36"
+version = "0.10.38"
 weakdeps = ["StaticArrays"]
 
     [deps.ForwardDiff.extensions]

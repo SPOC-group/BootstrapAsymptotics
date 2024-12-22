@@ -30,11 +30,11 @@ function gₒᵤₜ_and_∂ωgₒᵤₜ_gaussian_ensemble(y::Real, ω::AbstractV
     """
     objective(z::AbstractVector) = objective_gaussian_ensemble(z, y, ω, V_inv; ε = ε)
     
-    gradient(_, z::AbstractVector) = ForwardDiff.gradient(objective)(z)
-    hessian(_,  z::AbstractVector) = ForwardDiff.hessian(objective)(z)
+    gradient(_, z::AbstractVector) = ForwardDiff.gradient(objective, z)
+    hessian(_,  z::AbstractVector) = ForwardDiff.hessian(objective, z)
 
     loss(z::AbstractVector) = loss_gaussian_ensemble(z, y, ω, V_inv; ε = ε)
-    hessian_loss(z::AbstractVector)= ForwardDiff.hessian(loss)(z)
+    hessian_loss(z::AbstractVector)= ForwardDiff.hessian(loss, z)
 
     scalarobj = NLSolvers.ScalarObjective(; f=objective, g=gradient, h=hessian)
     optprob = NLSolvers.OptimizationProblem(scalarobj; inplace=false)
@@ -44,17 +44,19 @@ function gₒᵤₜ_and_∂ωgₒᵤₜ_gaussian_ensemble(y::Real, ω::AbstractV
     res = NLSolvers.solve(optprob, init, solver, options)
 
     prox = res.info.solution
-    ∂ωprox = inv(1 + V * p * hessian_loss(prox))  # implicit function theorem
+    ∂ωprox = inv(I + V * hessian_loss(prox))  # implicit function theorem
 
     gₒᵤₜ       = V_inv * (prox - ω)
-    ∂ωgₒᵤₜ     = V_inv * (∂ωprox - 1)
+    ∂ωgₒᵤₜ     = V_inv * (∂ωprox - I)
 
     return gₒᵤₜ, ∂ωgₒᵤₜ
 end
 
 function Z₀_and_∂μZ₀(y::Real, μ::Real, v_star::Real, problem::EnsembledRidge)
     (; Δ) = problem
-    return exp(- (y - μ)^2. / (2.0 * (v_star + Δ))) / sqrt(2.0 * pi * (v_star + Δ))
+    Z_0 = exp(- (y - μ)^2. / (2.0 * (v_star + Δ))) / sqrt(2.0 * pi * (v_star + Δ))
+    ∂Z_0= (μ - y) / (v_star + Δ) * Z_0
+    return Z_0, ∂Z_0
 end
 
 
@@ -83,7 +85,7 @@ function update_hatoverlaps_summand(
     # integrand on y and the student's local fields
     function integrand(u::AbstractVector)
         y = u[1]
-        ω = Q_sqrt * u[2, 3]
+        ω = Q_sqrt * u[2:3]
         μ = dot(m, Q⁻¹ * ω)
 
         Z₀, ∂μZ₀ = Z₀_and_∂μZ₀(y, μ, v_star, problem)
@@ -93,15 +95,16 @@ function update_hatoverlaps_summand(
         IQ = Z₀ * gₒᵤₜ * gₒᵤₜ'
         IV = -Z₀ * ∂ωgₒᵤₜ
 
-        return vcat(Im, vec(IQ), IV.diag) * prod(normpdf, u[2, 3])
+        return vcat(Im, vec(IQ), vec(IV)) * prod(normpdf, u[2:3])
     end
 
-    bound = SVector(10.0, 10.0, 10.0)
+    bound = SVector(5.0, 5.0, 5.0)
     integral, err = hcubature(integrand, -bound, +bound; rtol)
 
     Δm_hat += SVector(integral[1], integral[2])
     ΔQ_hat += SMatrix{2,2}(integral[3], integral[4], integral[5], integral[6])
-    ΔV_hat += Diagonal(SVector(integral[7], integral[8]))
+    ΔV_hat += SMatrix{2,2}(integral[7], integral[8], integral[9], integral[10])
 
-    return Overlaps{true}(Δm_hat, ΔQ_hat, ΔV_hat)
+    updated_hatoverlaps = Overlaps{true}(Δm_hat, ΔQ_hat, ΔV_hat)
+    return updated_hatoverlaps
 end

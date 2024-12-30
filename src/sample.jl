@@ -40,7 +40,12 @@ function sample_weights(rng::AbstractRNG, problem::Problem, n::Union{Nothing, In
         end
     end
 
-    w = randn(rng, d)
+    if problem isa LassoWithLassoTeacher
+        # sample the teacher weights from the laplace distribution
+        w = rand(rng, Laplace(0.0, 1.0), d)
+    else
+        w = randn(rng, d)
+    end
     return w
 end
 
@@ -56,7 +61,7 @@ function sample_labels(rng::AbstractRNG, ::Logistic, X::AbstractMatrix, w::Abstr
 end
 
 function sample_labels(
-    rng::AbstractRNG, problem::Union{Lasso, Ridge, RidgeOverparametrized}, X::AbstractMatrix, w::AbstractVector;
+    rng::AbstractRNG, problem::Union{Lasso, Ridge, RidgeOverparametrized, LassoWithLassoTeacher}, X::AbstractMatrix, w::AbstractVector;
 )
     n = size(X, 1)
     y = X * w .+ sqrt.(problem.Δ) .* randn(rng, n)

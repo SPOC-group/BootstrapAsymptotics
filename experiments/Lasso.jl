@@ -1,9 +1,10 @@
 using BootstrapAsymptotics
+using Plots
 using StableRNGs: StableRNG
 
 rng = StableRNG(0)
-λ = 0.25
-d = 1000
+λ = 1.0
+d = 500
 
 α_range = 0.1:0.05:2.0
 
@@ -15,7 +16,7 @@ m_erm = []
 q_erm = []
 
 for α in α_range
-    problem = Lasso(α = α, ρ = 1.0, λ = λ, Δ = 1.0, Δ̂ = 1.0)
+    problem = BootstrapAsymptotics.LassoWithLassoTeacher(α = α,  λ = λ)
 
     result = state_evolution(problem, BootstrapAsymptotics.NoResampling(),BootstrapAsymptotics.NoResampling(); show_progress = false)
 
@@ -29,8 +30,14 @@ for α in α_range
     push!(q_erm, ŵ' * ŵ / d)
 end
 
-using Plots
-
 plt = plot(α_range, q, label = "SE m")
 scatter!(plt, α_range, q_erm, label = "Empirical m")
-# sho the plot
+
+## just some tests
+
+α = 0.01
+(;X, w, y) = sample_all(rng, BootstrapAsymptotics.LassoWithLassoTeacher(α = α, λ = λ, Δ = 1.0, Δ̂ = 1.0); teacher_dim = 10000)
+stephist(w, density = true)
+
+(;X, w, y) = sample_all(rng, BootstrapAsymptotics.Lasso(α = α, λ = λ, Δ = 1.0, Δ̂ = 1.0); teacher_dim = 10000)
+stephist!(w, density = true)

@@ -16,7 +16,10 @@ function fv(b_::Real, A_::Real, λ::Real; ε::Real = 1e-5)
    end
 end
 
-function update_hatoverlaps(problem::Lasso, ::NoResampling, ::NoResampling, overlaps::Overlaps{false}; rtol::Real)
+function update_hatoverlaps(problem::Union{LassoWithLassoTeacher, Lasso}, ::NoResampling, ::NoResampling, overlaps::Overlaps{false}; rtol::Real)
+    """
+    This is the standard L2 hat overlaps update but we do it for one overlap (instead of two as in Ridge)
+    """
     m = overlaps.m[1]
     q = overlaps.Q[1, 1]
     v = overlaps.V[1, 1]
@@ -64,7 +67,44 @@ function update_overlaps(problem::Lasso, hatoverlaps::Overlaps{true}; rtol=1e-3)
     return Overlaps{false}(mvec, Qmat, Vmat)
 end
 
-function state_evolution(problem::Lasso, algo1::NoResampling, algo2::NoResampling; rtol=1e-4,max_iteration=1000,show_progress::Bool=false,)
+# this one is for Lasso on Gaussian teacher 
+# so θ_* = ε[1] is from the Laplace
+function update_overlaps(problem::LassoWithLassoTeacher, hatoverlaps::Overlaps{true}; rtol=1e-3)
+    m̂ = hatoverlaps.m[1]
+    q̂ = hatoverlaps.Q[1, 1]
+    v̂ = hatoverlaps.V[1, 1]
+
+    # 
+    function integrand_m(ε::SVector{2})
+        return fa(m̂ * ε[1] + sqrt(q̂) * ε[2], v̂, problem.λ) * ε[1] * normpdf(ε[2]) * pdf(Laplace(0.0, 1.0), ε[1])
+    end
+
+    # depends only on the sum of two i.i.d gaussians -> integrate on 1 RV
+    function integrand_q(ε::SVector{2})
+        return fa(m̂ * ε[1] + sqrt(q̂) * ε[2], v̂, problem.λ)^2. * normpdf(ε[2]) * pdf(Laplace(0.0, 1.0), ε[1])
+    end
+
+    function integrand_v(ε::SVector{2})
+        return fv(m̂ * ε[1] + sqrt(q̂) * ε[2], v̂, problem.λ) * normpdf(ε[2]) * pdf(Laplace(0.0, 1.0), ε[1])
+    end
+
+    bound = 10.0
+    integral_m, err = hcubature(
+            integrand_m, (-bound, -bound), (bound, bound); rtol
+    )
+    integral_q, err = hcubature( integrand_q, (-bound, -bound), (bound, bound); rtol )
+    integral_v, err = hcubature( integrand_v, (-bound, -bound), (bound, bound); rtol )
+        
+    mvec = SVector(integral_m, integral_m)
+    Qmat = SMatrix{2,2}(integral_q, 0.0, 0.0, integral_q)
+    Vmat = SMatrix{2,2}(integral_v, 0.0, 0.0, integral_v)
+
+    return Overlaps{false}(mvec, Qmat, Vmat)
+end
+
+#3
+
+function state_evolution(problem::Union{Lasso, LassoWithLassoTeacher}, algo1::NoResampling, algo2::NoResampling; rtol=1e-4,max_iteration=1000,show_progress::Bool=false,)
     """
         Here only consider one learner (we dont compute the cross term yet) so no resampling
     """
@@ -73,7 +113,6 @@ function state_evolution(problem::Lasso, algo1::NoResampling, algo2::NoResamplin
     p = Progress(max_iteration; desc="State evolution", enabled=show_progress)
 
     for iter in 1:max_iteration
-        println(iter)
         next!(p)
         new_hatoverlaps = update_hatoverlaps(problem, algo1, algo2, overlaps; rtol)
         new_overlaps = update_overlaps(problem, new_hatoverlaps)
@@ -91,3 +130,5 @@ function state_evolution(problem::Lasso, algo1::NoResampling, algo2::NoResamplin
     stats = (; converged, nb_iterations)
     return (; overlaps, hatoverlaps, stats)
 end
+
+#

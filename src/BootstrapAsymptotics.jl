@@ -10,6 +10,7 @@ $(EXPORTS)
 module BootstrapAsymptotics
 
 using Base.Iterators: product
+using Distributions: Laplace, Normal, pdf
 using DocStringExtensions
 using ForwardDiff
 using HCubature: hcubature

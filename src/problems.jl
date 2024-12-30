@@ -45,6 +45,19 @@ $(TYPEDFIELDS)
     ρ::Float64 = 1.0
 end
 
+@kwdef struct Lasso <: Problem
+    "ratio of population over dimension `n/d`"
+    α::Float64 = 1.0
+    "Gaussian noise variance"
+    Δ::Float64 = 1.0
+    "stzudent noise variance in the ridge loss"
+    Δ̂::Float64 = 1.0
+    "regularization strength"
+    λ::Float64 = 1.0
+    "teacher weight is 2 for lasso because of the laplace distribution"
+    ρ::Float64 = 2.0
+end
+
 """
 $(TYPEDEF)
 

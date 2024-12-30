@@ -56,7 +56,7 @@ function sample_labels(rng::AbstractRNG, ::Logistic, X::AbstractMatrix, w::Abstr
 end
 
 function sample_labels(
-    rng::AbstractRNG, problem::Union{Ridge, RidgeOverparametrized}, X::AbstractMatrix, w::AbstractVector;
+    rng::AbstractRNG, problem::Union{Lasso, Ridge, RidgeOverparametrized}, X::AbstractMatrix, w::AbstractVector;
 )
     n = size(X, 1)
     y = X * w .+ sqrt.(problem.Δ) .* randn(rng, n)

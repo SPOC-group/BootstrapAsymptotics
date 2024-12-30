@@ -119,19 +119,27 @@ function state_evolution(
     max_iteration=100,
     show_progress::Bool=false,
 )
-    if problem isa BayesOptimalRidgeOverparametrized 
+    if problem isa BayesOptimalRidgeOverparametrized || problem isa Lasso
         if !(algo1 isa NoResampling && algo2 isa NoResampling)
             error("Not implemented yet")
         end
     end
+    
 
     overlaps, hatoverlaps = Overlaps{false}(), Overlaps{true}()
     converged, nb_iterations = false, max_iteration
     p = Progress(max_iteration; desc="State evolution", enabled=show_progress)
 
     for iter in 1:max_iteration
+        if show_progress
+            println("overlaps : $overlaps")
+            println("hatoverlaps : $hatoverlaps")
+        end
         next!(p)
         new_hatoverlaps = update_hatoverlaps(problem, algo1, algo2, overlaps; rtol)
+        if show_progress
+            println("new_hatoverlaps : $new_hatoverlaps")
+        end
         new_overlaps = update_overlaps(problem, new_hatoverlaps)
         if (
             close_enough(new_overlaps, overlaps; rtol) &&

@@ -26,6 +26,14 @@ function StatsAPI.fit(problem::Ridge, ::ERM, X::AbstractMatrix, y::AbstractVecto
 end
 
 
+function StatsAPI.fit(problem::Lasso, ::ERM, X::AbstractMatrix, y::AbstractVector)
+    (; λ) = problem
+    model = MLJLinearModels.LassoRegression(
+        λ; fit_intercept=false, scale_penalty_with_samples=false
+    )
+    w = MLJLinearModels.fit(model, X, y)
+    return w
+end
 
 ## Fallbacks
 

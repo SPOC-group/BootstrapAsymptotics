@@ -40,6 +40,7 @@ include("state_evolution_ridge.jl")
 include("state_evolution_logistic.jl")
 include("state_evolution_bayesopt.jl")
 include("state_evolution_kernel.jl")
+include("state_evolution_lasso.jl")
 
 include("bias_variance.jl")
 include("gamp.jl")
@@ -49,7 +50,7 @@ include("scaling.jl")
 
 
 export Overlaps
-export Ridge, Logistic
+export Ridge, Logistic, Lasso
 export PairBootstrap, Subsampling, ResidualBootstrap, NoResampling
 export ERM, BayesOpt, LabelResampling, FullResampling
 export sample_data, sample_weights, sample_labels, sample_all

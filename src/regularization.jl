@@ -1,3 +1,6 @@
+"""
+    Optimized MSE error = ρ - 2m + q₀ (so not by ensembling the models)
+"""
 function compute_optimal_λ(; sample_over_student_dim::Float64, Δ::Float64,ρ::Float64, κ1::Float64, κstar::Float64, student_over_teacher_dim::Float64 )::Float64
     function to_optimize(λ::AbstractArray)::Real
         if λ[1] < 0.0

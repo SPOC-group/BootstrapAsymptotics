@@ -58,6 +58,19 @@ end
     ρ::Float64 = 2.0
 end
 
+@kwdef struct EnsembledRidge <: Problem
+    "ratio of population over dimension `n/d`"
+    α::Float64 = 1.0
+    "Gaussian noise variance"
+    Δ::Float64 = 1.0
+    "stzudent noise variance in the ridge loss"
+    Δ̂::Float64 = 1.0
+    "regularization strength"
+    λ::Float64 = 1.0
+    "teacher weight"
+    ρ::Float64 = 1.0
+end
+
 """
 $(TYPEDEF)
 
@@ -112,12 +125,6 @@ $(TYPEDFIELDS)
     student_over_teacher_dim::Float64
 end
 
-function Base.show(io::IO, problem::Ridge)
-    (; α, Δ, λ, ρ) = problem
-    return print(io, "Ridge(α=$(round(α, sigdigits=3)), λ=$λ, ρ=$ρ, Δ=$Δ)")
-end
-
-
 @kwdef struct KernelRidgeOverparametrized <: Problem
     "correlation between sutdent and teacher features"
     κ1::Float64
@@ -133,6 +140,25 @@ end
     ρ::Float64
     "Gaussian noise variance"
     Δ̂::Float64 = 1.0
+end
+
+# 
+
+@kwdef struct LogisticOverparametrized <: Problem
+    "Additive noise coming from the overparametrization"
+    Δ_add::Float64
+    "ratio of population over student dimension `n/p`"
+    α::Float64
+    "regularization strength"
+    λ::Float64
+    "teacher weight"
+    ρ::Float64
+    "correlation between sutdent and teacher features"
+    κ1::Float64
+    "white noise std. due to random features"
+    κstar::Float64
+    "Student of teacher dimension"
+    student_over_teacher_dim::Float64 
 end
 
 # ==== 
@@ -175,4 +201,28 @@ function build_ridge_overparametrized(;
             student_over_teacher_dim = student_over_teacher_dim
         )
     end
+end
+
+### 
+
+function build_logistic_overparametrized(;
+    α::Float64,
+    true_Δ::Float64,
+    λ::Float64, # useless for Bayes optimal
+    true_ρ::Float64,
+    κ1::Float64,
+    κstar::Float64,
+    student_over_teacher_dim::Float64,
+)::LogisticOverparametrized
+    Δ_add = true_ρ * get_additional_noise_from_kappas(κ1, κstar, student_over_teacher_dim)
+    
+    return LogisticOverparametrized(
+        α     = α,
+        Δ_add = Δ_add,
+        κ1    = κ1,
+        κstar = κstar,
+        ρ     = true_ρ - Δ_add,
+        λ     = λ,
+        student_over_teacher_dim = student_over_teacher_dim
+    )
 end

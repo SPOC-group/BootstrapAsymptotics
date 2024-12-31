@@ -71,18 +71,8 @@ end
     ρ::Float64 = 2.0
 end
 
-@kwdef struct EnsembledRidge <: Problem
-    "ratio of population over dimension `n/d`"
-    α::Float64 = 1.0
-    "Gaussian noise variance"
-    Δ::Float64 = 1.0
-    "stzudent noise variance in the ridge loss"
-    Δ̂::Float64 = 1.0
-    "regularization strength"
-    λ::Float64 = 1.0
-    "teacher weight"
-    ρ::Float64 = 1.0
-end
+
+
 
 """
 $(TYPEDEF)

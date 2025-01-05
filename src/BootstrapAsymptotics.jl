@@ -43,7 +43,7 @@ include("state_evolution_logistic.jl")
 include("state_evolution_bayesopt.jl")
 include("state_evolution_kernel.jl")
 include("state_evolution_lasso.jl")
-include("state_evolution_ensemble.jl")
+# include("state_evolution_ensemble.jl") # keep this commented while EnsembledRidge not done 
 
 include("bias_variance.jl")
 include("gamp.jl")

@@ -1,5 +1,6 @@
-using QuadGK
+using ForwardDiff
 using HCubature
+using QuadGK
 using SpecialFunctions: erfc, erf
 
 function Iplus(b::Real, A::Real)::Real
@@ -31,6 +32,21 @@ function Iminus_closed_form(b::Real, A::Real)::Real
     return exp(b^2 / (2 * A)) * sqrt(π /  (2 * A)) * erfc( b / sqrt(2 * A))
 end
 
+function Z_a(b::Real, A::Real)::Real
+    return Iplus(b, A) + Iminus(b, A)
+end
+
+function f_a(b::Real, A::Real)::Real
+    return ForwardDiff.derivative( b -> log(Z_a(b, A)), b)
+end
+
+function f_v(b::Real, A::Real)::Real
+    return ForwardDiff.derivative( b -> f_a(b, A), b)
+end
+
+#### 
 b, A = 10.0, 5.0
 println(Iplus(b, A), " ", Iplus_closed_form(b, A) )
 println(Iminus(b, A), " ", Iminus_closed_form(b, A))
+
+@time f_a(b, A), f_v(b, A)

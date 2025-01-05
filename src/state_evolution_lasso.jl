@@ -16,7 +16,7 @@ function fv(b_::Real, A_::Real, λ::Real; ε::Real = 1e-5)
    end
 end
 
-function update_hatoverlaps(problem::Union{LassoWithLassoTeacher, Lasso}, ::NoResampling, ::NoResampling, overlaps::Overlaps{false}; rtol::Real)
+function update_hatoverlaps(problem::Union{LassoWithLassoTeacher, Lasso, BayesOptimalLasso}, ::NoResampling, ::NoResampling, overlaps::Overlaps{false}; rtol::Real)
     """
     This is the standard L2 hat overlaps update but we do it for one overlap (instead of two as in Ridge)
     """

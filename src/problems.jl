@@ -71,7 +71,16 @@ end
     ρ::Float64 = 2.0
 end
 
-
+@kwdef struct BayesOptimalLasso <: Problem # corresponds to a Laplace teacher
+    "ratio of population over dimension `n/d`"
+    α::Float64 = 1.0
+    "Gaussian noise variance"
+    Δ::Float64 = 1.0
+    "stzudent noise variance in the ridge loss"
+    Δ̂::Float64 = 1.0 # should not be changed in the Baye optimal case
+    "teacher weight is 2 for lasso because of the laplace distribution"
+    ρ::Float64 = 2.0
+end
 
 
 """

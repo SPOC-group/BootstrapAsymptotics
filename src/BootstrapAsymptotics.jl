@@ -22,6 +22,7 @@ using Optim
 using ProgressMeter: Progress, next!
 using QuadGK: quadgk
 using Random: AbstractRNG
+using SpecialFunctions: erfc, erf
 using StableRNGs: StableRNG
 using Statistics: mean
 using StatsBase: sample
@@ -43,6 +44,7 @@ include("state_evolution_logistic.jl")
 include("state_evolution_bayesopt.jl")
 include("state_evolution_kernel.jl")
 include("state_evolution_lasso.jl")
+include("state_evolution_bo_lasso.jl")
 # include("state_evolution_ensemble.jl") # keep this commented while EnsembledRidge not done 
 
 include("bias_variance.jl")
